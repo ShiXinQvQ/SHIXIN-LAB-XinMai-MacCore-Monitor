@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Packaging/AppIcon.appiconset/icon_512x512@2x.png" width="128" height="128" alt="SHIXIN LAB XinMai final v3 app icon">
+  <img src="Packaging/AppIconPreviewGitHub.png" width="128" height="128" alt="SHIXIN LAB XinMai final v3 app icon">
 </p>
 
 <h1 align="center">SHIXIN LAB · 「芯脉」 MacCore Monitor</h1>
