@@ -17,8 +17,8 @@ SHIXIN LAB · 「芯脉」 MacCore Monitor 是面向 Apple Silicon Mac 的原生
 - **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.0-beta，构建 300。
 - **Applications**：将 App 拖入此快捷方式即可安装到“应用程序”。
 - **安装与使用说明**：本双语文档。
-- **版权、源码许可与第三方声明**：版权、许可、商标与责任边界。
-- **Licenses**：smartmontools / smartctl 的第三方声明与完整 GPL 文本；如本构建内置 smartctl，还会包含版本记录和对应源码归档。
+- **版权、开源许可与第三方声明**：GPL-3.0-or-later、版权、品牌资产、商标与责任边界。
+- **Licenses**：芯脉 GPLv3 正文、SHIXIN LAB 品牌资产声明，以及 smartmontools / smartctl 的第三方声明与完整 GPL 文本；如本构建内置 smartctl，还会包含版本记录和对应源码归档。
 - **Release Manifest**：版本、Helper、源码提交、架构与生成时间。
 
 SHA-256 校验文件与 DMG 一同发布，不在 DMG 内。请始终把两者作为同一发行版本保存和核对。
@@ -37,7 +37,7 @@ SHA-256 校验文件与 DMG 一同发布，不在 DMG 内。请始终把两者�
 1. 双击打开 DMG。
 2. 将“SHIXIN LAB · 「芯脉」.app”拖到 DMG 内的“Applications”快捷方式。
 3. 等待复制完成，再从“应用程序”文件夹打开 App；不要长期直接从 DMG 内运行。
-4. 本 Beta 采用未公证分发。如果 macOS 阻止首次打开，请在 Finder 中按住 Control 点按 App，选择“打开”；也可以前往“系统设置 > 隐私与安全性”，确认打开该 App。
+4. 如果 macOS 阻止首次打开，请在 Finder 中按住 Control 点按 App，选择“打开”；也可以前往“系统设置 > 隐私与安全性”，确认打开该 App。
 
 如需在终端核对下载，先把 DMG 与同名 `.sha256` 文件放在同一目录，再运行 `shasum -a 256 -c checksum-file.sha256`（将文件名替换为下载页面提供的实际名称）。结果显示 `OK` 才表示下载内容与发布值一致。
 
@@ -103,8 +103,8 @@ Power, frequency, and thermal state are primarily provided by macOS powermetrics
 - **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.0-beta, build 300.
 - **Applications**: drag the app onto this shortcut to install it in Applications.
 - **Installation & Usage Guide**: this bilingual document.
-- **Copyright, Source License & Third-Party Notices**: copyright, licensing, trademark, and responsibility terms.
-- **Licenses**: smartmontools / smartctl notices and the complete GPL text. If this build bundles smartctl, it also includes the version record and corresponding source archive.
+- **Copyright, Open Source License & Third-Party Notices**: GPL-3.0-or-later, copyright, protected brand assets, trademarks, and responsibility terms.
+- **Licenses**: the XinMai GPLv3 text, SHIXIN LAB brand-asset notice, and smartmontools / smartctl notices and GPL text. If this build bundles smartctl, it also includes the version record and corresponding source archive.
 - **Release Manifest**: product, Helper, source commit, architecture, and generation details.
 
 The SHA-256 checksum file is published beside the DMG, not inside it. Keep and verify both files as one release set.
@@ -118,12 +118,14 @@ The SHA-256 checksum file is published beside the DMG, not inside it. Keep and v
 
 > Download only from the SHIXIN LAB website or this project’s GitHub Releases. The filename, version, and SHA-256 must come from the same release; never verify a new DMG with an older checksum.
 
+<!-- PAGEBREAK -->
+
 ## Install and Open the App
 
 1. Double-click the DMG to open it.
 2. Drag “SHIXIN LAB · 「芯脉」.app” onto the “Applications” shortcut.
 3. Wait for copying to finish, then open the app from Applications. Do not use the copy inside the DMG as a permanent installation.
-4. This Beta uses non-notarized distribution. If macOS blocks the first launch, Control-click the app in Finder and choose “Open”, or confirm it under “System Settings > Privacy & Security”.
+4. If macOS blocks the first launch, Control-click the app in Finder and choose “Open”, or confirm it under “System Settings > Privacy & Security”.
 
 To verify the download in Terminal, place the DMG and its matching `.sha256` file in the same folder, then run `shasum -a 256 -c checksum-file.sha256`. Continue only when the result reports `OK`.
 
@@ -150,6 +152,8 @@ After installation, Advanced Access should report Helper version `0.3.0-helper`.
 - **Speed and Network Diagnostics** use macOS networkQuality and provide on-demand international-route checks and IP analysis.
 
 Sensor availability varies by Mac model and macOS release. Power, frequency, and temperature readings are best used for trends and relative comparison on the current device; they do not replace external laboratory instruments.
+
+<!-- PAGEBREAK -->
 
 ## Local Data, Privacy, and Network Access
 

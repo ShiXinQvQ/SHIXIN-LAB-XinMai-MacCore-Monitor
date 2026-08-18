@@ -12,11 +12,12 @@ EXPECTED_HELPER_VERSION="$(sed -n 's/.*helperVersion = "\([^"]*\)".*/\1/p' "$ROO
 SOURCE_COMMIT="$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)"
 SOURCE_CHANGE_COUNT="$(git -C "$ROOT_DIR" status --porcelain | wc -l | tr -d ' ')"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-DIST_DIR="$ROOT_DIR/Dist/PublicBeta-${APP_VERSION}-${STAMP}"
-DMG_PATH="$DIST_DIR/SHIXIN-LAB-XinMai-MacCore-Monitor-${APP_VERSION}-${STAMP}.dmg"
+APP_VERSION_FILENAME="$(printf '%s' "$APP_VERSION" | sed 's/-beta/-Beta/')"
+DIST_DIR="$ROOT_DIR/Dist/Release-${APP_VERSION}-${STAMP}"
+DMG_PATH="$DIST_DIR/SHIXIN-LAB-XinMai-MacCore-Monitor-${APP_VERSION_FILENAME}.dmg"
 DMG_FILENAME="$(basename "$DMG_PATH")"
 INSTALL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Installation Guide - zh-Hans & English.pdf"
-LEGAL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Copyright, Source License & Third-Party Notices - zh-Hans & English.pdf"
+LEGAL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Copyright, Open Source License & Third-Party Notices - zh-Hans & English.pdf"
 WORK_ROOT="$(mktemp -d /private/tmp/xinmai-public-beta.XXXXXX)"
 APP_OUTPUT="$WORK_ROOT/app"
 SCRATCH_PATH="$WORK_ROOT/swift-build"
@@ -107,12 +108,14 @@ else
   SMARTCTL_STATUS="not bundled in this build"
 fi
 
-echo "[4/9] Stage the public Beta distribution"
+echo "[4/9] Stage the release distribution"
 ditto "$BUILT_APP" "$STAGE_DIR/${APP_NAME}.app"
 ln -s /Applications "$STAGE_DIR/Applications"
 cp "$INSTALL_PDF" "$STAGE_DIR/安装与使用说明 - Installation Guide.pdf"
-cp "$LEGAL_PDF" "$STAGE_DIR/版权、源码许可与第三方声明 - Copyright, Source License and Third-Party Notices.pdf"
+cp "$LEGAL_PDF" "$STAGE_DIR/版权、开源许可与第三方声明 - Copyright, Open Source License and Third-Party Notices.pdf"
 mkdir -p "$STAGE_DIR/Licenses"
+cp LICENSE "$STAGE_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
+cp NOTICE.md "$STAGE_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 cp Packaging/THIRD-PARTY-NOTICES.txt "$STAGE_DIR/Licenses/THIRD-PARTY-NOTICES.txt"
 cp Packaging/smartmontools-COPYING.txt "$STAGE_DIR/Licenses/smartmontools-COPYING.txt"
 if [ -s "$BUILT_APP/Contents/Resources/Licenses/smartctl-version.txt" ]; then
@@ -124,7 +127,7 @@ fi
 
 {
   printf '%s\n' 'SHIXIN LAB · 「芯脉」 MacCore Monitor'
-  printf '%s\n' 'Public Beta Release Manifest / 公开 Beta 发行清单'
+  printf '%s\n' 'Release Manifest / 发行清单'
   printf '\n'
   printf 'Product version / 产品版本: %s\n' "$APP_VERSION"
   printf 'Build / 构建: %s\n' "$APP_BUILD"
@@ -134,7 +137,8 @@ fi
   printf 'Generated / 生成时间: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   printf 'Architecture / 架构: Apple Silicon arm64\n'
   printf 'Minimum system / 最低系统: macOS 15.0\n'
-  printf 'Project license / 项目许可: SHIXIN LAB Source-Available Notice\n'
+  printf 'Program source license / 程序源码许可: GNU GPL v3 or later (GPL-3.0-or-later)\n'
+  printf 'Brand assets / 品牌资产: See NOTICE.md / 见 NOTICE.md\n'
   printf 'smartctl: %s\n' "$SMARTCTL_STATUS"
   printf '\n'
   printf 'Website / 官网: https://shixinqvq.com/lab/xinmai/\n'
@@ -162,8 +166,10 @@ MOUNTED_HELPER="$MOUNTED_APP/Contents/Resources/PrivilegedHelperTools/$HELPER_LA
 test -d "$MOUNTED_APP"
 test -L "$MOUNT_DIR/Applications"
 test -s "$MOUNT_DIR/安装与使用说明 - Installation Guide.pdf"
-test -s "$MOUNT_DIR/版权、源码许可与第三方声明 - Copyright, Source License and Third-Party Notices.pdf"
+test -s "$MOUNT_DIR/版权、开源许可与第三方声明 - Copyright, Open Source License and Third-Party Notices.pdf"
 test -s "$MOUNT_DIR/Release Manifest - 发行清单.txt"
+test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
+test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 test -s "$MOUNT_DIR/Licenses/THIRD-PARTY-NOTICES.txt"
 test -s "$MOUNT_DIR/Licenses/smartmontools-COPYING.txt"
 codesign --verify --deep --strict --verbose=2 "$MOUNTED_APP"
@@ -174,7 +180,9 @@ strings "$MOUNTED_HELPER" | grep -Fx "$EXPECTED_HELPER_VERSION" >/dev/null
 cmp -s "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME" "$MOUNTED_APP/Contents/MacOS/$PRODUCT_NAME"
 cmp -s "$BUILT_HELPER" "$MOUNTED_HELPER"
 cmp -s "$INSTALL_PDF" "$MOUNT_DIR/安装与使用说明 - Installation Guide.pdf"
-cmp -s "$LEGAL_PDF" "$MOUNT_DIR/版权、源码许可与第三方声明 - Copyright, Source License and Third-Party Notices.pdf"
+cmp -s "$LEGAL_PDF" "$MOUNT_DIR/版权、开源许可与第三方声明 - Copyright, Open Source License and Third-Party Notices.pdf"
+cmp -s LICENSE "$MOUNT_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
+cmp -s NOTICE.md "$MOUNT_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 
 if [ -x "$MOUNTED_APP/Contents/Resources/Tools/smartctl" ]; then
   test -s "$MOUNTED_APP/Contents/Resources/Licenses/THIRD-PARTY-NOTICES.txt"
@@ -200,7 +208,7 @@ echo "[8/9] Write and verify SHA-256"
   shasum -a 256 -c "${DMG_FILENAME}.sha256"
 )
 
-echo "[9/9] Public Beta package complete"
+echo "[9/9] Release package complete"
 echo "DMG: $DMG_PATH"
 echo "SHA-256: ${DMG_PATH}.sha256"
 echo "Version: $APP_VERSION ($APP_BUILD)"

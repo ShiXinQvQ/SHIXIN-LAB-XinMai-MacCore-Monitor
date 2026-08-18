@@ -17,8 +17,8 @@ Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容
   comparison, and high-resolution share images.
 - macOS networkQuality speed testing, layered international diagnostics, and
   on-demand IP analysis with explicit network boundaries.
-- Bilingual installation and copyright/source-license documents for the public
-  Beta DMG.
+- Bilingual installation, GPL open-source, copyright, and brand-asset documents
+  for the published DMG.
 
 ### Reliability / 可靠性
 
@@ -35,5 +35,8 @@ Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容
 
 - App `0.3.0-beta` (build `300`), Helper `0.3.0-helper`.
 - Apple Silicon (`arm64`), minimum macOS 15.0.
-- Public Beta packaging includes release manifest, SHA-256 verification,
-  bilingual guides, and third-party notices.
+- Release packaging includes the manifest, SHA-256 verification, bilingual
+  guides, GPLv3 text, protected-brand notice, and third-party notices.
+- SHIXIN LAB-owned program source is released under GPL-3.0-or-later; protected
+  names, final v3 icon, screenshots, promotional artwork, and other brand assets
+  remain subject to NOTICE.md.

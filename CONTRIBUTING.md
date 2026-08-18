@@ -1,11 +1,24 @@
 # Contributing / 参与贡献
 
 Thank you for reviewing SHIXIN LAB · 「芯脉」 MacCore Monitor. Before proposing
-a change, read `README.md`, `SECURITY.md`, `LICENSE`, and the relevant test
-matrix under `Testing/`.
+a change, read `README.md`, `SECURITY.md`, `LICENSE`, `NOTICE.md`, and the
+relevant test matrix under `Testing/`.
 
 感谢你审查 SHIXIN LAB ·「芯脉」MacCore Monitor。提交修改前，请先阅读
-`README.md`、`SECURITY.md`、`LICENSE` 与 `Testing/` 中相关测试矩阵。
+`README.md`、`SECURITY.md`、`LICENSE`、`NOTICE.md` 与 `Testing/`
+中相关测试矩阵。
+
+## Contribution License / 贡献许可
+
+Unless separately agreed in writing before acceptance, submitted code
+contributions are provided under `GPL-3.0-or-later` for inclusion in the
+program. Contributions do not grant permission to reuse SHIXIN LAB names, the
+final v3 icon, screenshots, promotional artwork, or other protected brand
+assets outside the scope of `NOTICE.md`.
+
+除非在贡献被接受前另有书面约定，提交并被接受的代码贡献将按
+`GPL-3.0-or-later` 纳入程序。提交贡献并不获得超出 `NOTICE.md` 范围复用
+SHIXIN LAB 名称、最终 v3 图标、截图、宣传视觉或其他受保护品牌资产的许可。
 
 ## Non-Negotiable Invariants / 不可突破的边界
 

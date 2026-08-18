@@ -318,8 +318,8 @@ def main() -> None:
     )
     build_pdf(
         "COPYRIGHT_AND_LICENSES_BILINGUAL.md",
-        "SHIXIN LAB - XinMai - Copyright, Source License & Third-Party Notices - zh-Hans & English.pdf",
-        "版权、源码许可与第三方声明 | Copyright, Source License & Third-Party Notices",
+        "SHIXIN LAB - XinMai - Copyright, Open Source License & Third-Party Notices - zh-Hans & English.pdf",
+        "版权、开源许可与第三方声明 | Copyright, Open Source License & Third-Party Notices",
         compact=True,
     )
 

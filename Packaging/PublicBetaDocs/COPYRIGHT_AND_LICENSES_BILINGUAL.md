@@ -1,5 +1,5 @@
 # SHIXIN LAB · 「芯脉」
-## 版权、源码许可与第三方声明 | Copyright, Source License & Third-Party Notices
+## 版权、开源许可与第三方声明 | Copyright, Open Source License & Third-Party Notices
 版本 0.3.0-beta · 构建 300 · 2026
 
 ---
@@ -10,17 +10,23 @@
 
 Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.0-beta，构建号 300。
 
-除仓库文件或第三方许可证另有明确说明外，产品名称、品牌视觉、最终 v3 图标、原创界面设计、中文与英文文档、宣传材料及其他 SHIXIN LAB 原创资产均受著作权保护。
+SHIXIN LAB 自有程序源码的著作权仍归 SHIXIN LAB / Shixin 所有，并按 GPL-3.0-or-later 授权。产品名称、品牌视觉、最终 v3 图标、Logo、截图、宣传视觉、中英文文档及其他 SHIXIN LAB 原创品牌资产不因源码开源而失去著作权保护。
 
-## 原创源码许可
+## 程序源码许可
 
 项目源码发布于：
 
 https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
 
-仓库中的 SHIXIN LAB 原创 App 源码和原创资产适用仓库根目录的 **SHIXIN LAB Source-Available Notice**。源码公开用于审查、透明说明、学习参考与安全检查；除非 SHIXIN LAB 另行书面授权，不得复制、再分发、再授权、销售、发布修改版本，或将原创源码与资产用于其他产品。
+除具体文件另有声明外，仓库中的 SHIXIN LAB 自有程序源码按照 **GNU General Public License 第 3 版或任何后续版本（GPL-3.0-or-later）**开源。完整许可证正文以仓库根目录的 `LICENSE` 为准。
 
-这是一项 source-available（源码可见）许可，不应被误解为 OSI 定义下的开源许可。仓库根目录 `LICENSE` 是原创源码授权范围与条件的最终依据；第三方组件继续适用各自许可证。
+GPL 允许在遵守其条件的前提下使用、研究、修改与再分发程序。对外分发程序或修改版本时，必须保留适用声明、提供对应源码，并明确标记修改。该许可不会转移源码著作权。
+
+## 品牌与原创资产
+
+GPL 对程序源码的授权不包含商标、品牌身份、宣传或官方背书授权。未经 SHIXIN LAB 事先书面许可，不得使用 SHIXIN LAB、「芯脉」、XinMai、MacCore Monitor 等产品标识，或最终 v3 图标、Logo、截图、宣传视觉及其他受保护品牌资产，把修改版或第三方构建包装成官方版本。
+
+公开再分发的 Fork 应使用不同的产品名称并替换上述受保护资产，同时清楚标明其经过修改且并非官方版本。仓库根目录 `NOTICE.md` 是代码许可范围、品牌资产边界与贡献规则的明确说明；第三方组件继续适用各自许可证。
 
 ## smartmontools / smartctl
 
@@ -32,7 +38,7 @@ https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
 - 完整许可证：DMG 与 App 内的 `smartmontools-COPYING.txt`
 - 第三方摘要：DMG 与 App 内的 `THIRD-PARTY-NOTICES.txt`
 
-smartctl 是与「芯脉」分离调用的上游程序，其 GPL 条款不被本项目的 Source-Available Notice 替代。如果发行构建附带 smartctl，DMG 的 `Licenses` 目录会同时提供该二进制对应版本的源码归档。
+smartctl 是与「芯脉」分离调用的上游程序，并继续适用其自身的 GPL-2.0-or-later。如果发行构建附带 smartctl，DMG 的 `Licenses` 目录会同时提供该二进制对应版本的源码归档。
 
 ## 平台、服务与商标
 
@@ -46,7 +52,7 @@ App 的硬件功耗、频率、热状态与传感器数据来自 macOS 及当前
 
 压力测试会真实增加设备功耗和温度。用户应保存重要工作、选择合适时长、保持通风并持续观察热状态。App 提供手动停止与热状态保护，但不能消除不当使用、设备差异或外部环境造成的全部风险。
 
-本 Beta 按现状提供。在适用法律允许的最大范围内，SHIXIN LAB 不对第三方服务中断、设备或网络差异、不当操作，或超出软件控制范围的结果作额外保证。
+本发行按现状提供。在适用法律允许的最大范围内，SHIXIN LAB 不对第三方服务中断、设备或网络差异、不当操作，或超出软件控制范围的结果作额外保证。GPL 完整免责声明以仓库与 DMG 内附许可证正文为准。
 
 ## 隐私与公开反馈
 
@@ -64,17 +70,23 @@ App 不会在后台上传硬件历史或个人内容；用户主动开始网速�
 
 Copyright © 2026 SHIXIN LAB / Shixin. SHIXIN LAB · 「芯脉」 MacCore Monitor is designed, developed, and maintained by Shixin. This distribution contains version 0.3.0-beta, build 300.
 
-Unless a repository file or third-party license explicitly states otherwise, the product name, brand visuals, final v3 icon, original interface design, Chinese and English documentation, promotional materials, and other original SHIXIN LAB assets are protected by copyright.
+Copyright in SHIXIN LAB-owned program source remains with SHIXIN LAB / Shixin and is licensed under GPL-3.0-or-later. The product name, brand visuals, final v3 icon, logos, screenshots, promotional artwork, bilingual documentation, and other original SHIXIN LAB brand assets remain protected by copyright even though the source code is open source.
 
-## Original Source License
+## Program Source License
 
 Project source is published at:
 
 https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
 
-Original SHIXIN LAB app source and assets in the repository are governed by the **SHIXIN LAB Source-Available Notice** at the repository root. They are published for review, transparency, learning, and security inspection. Unless SHIXIN LAB gives separate written permission, they may not be copied, redistributed, sublicensed, sold, published in modified form, or used in another product.
+Unless a specific file states otherwise, SHIXIN LAB-owned program source in the repository is free software licensed under the **GNU General Public License, version 3 or any later version (GPL-3.0-or-later)**. The complete license text in the root `LICENSE` file is authoritative.
 
-This is a source-available license and must not be represented as an OSI-approved open-source license. The root `LICENSE` file is authoritative for original project code. Third-party components remain governed by their own licenses.
+The GPL permits use, study, modification, and redistribution under its conditions. A distribution of the program or a modified version must preserve applicable notices, provide corresponding source, and clearly identify modifications. The license does not transfer ownership of the source copyright.
+
+## Brand and Original Assets
+
+The GPL source-code grant does not include a trademark, brand-identity, publicity, or endorsement license. Without prior written permission from SHIXIN LAB, SHIXIN LAB, XinMai, MacCore Monitor, the final v3 icon, logos, screenshots, promotional artwork, and other protected brand assets may not be used to present a modified or third-party build as an official release.
+
+A publicly redistributed fork should use a distinct product name, replace the protected assets above, and clearly identify itself as modified and unofficial. The root `NOTICE.md` defines the code-license scope, brand-asset boundary, and contribution terms. Third-party components remain governed by their own licenses.
 
 ## smartmontools / smartctl
 
@@ -86,7 +98,7 @@ Some builds may bundle the standalone smartctl command-line tool from smartmonto
 - Complete license: `smartmontools-COPYING.txt` in the DMG and app
 - Third-party summary: `THIRD-PARTY-NOTICES.txt` in the DMG and app
 
-smartctl is an independently invoked upstream program. Its GPL terms are not replaced by the project’s Source-Available Notice. If a release bundles smartctl, the DMG `Licenses` directory also provides the corresponding source archive for that exact binary version.
+smartctl is an independently invoked upstream program and remains under its own GPL-2.0-or-later terms. If a release bundles smartctl, the DMG `Licenses` directory also provides the corresponding source archive for that exact binary version.
 
 ## Platforms, Services, and Trademarks
 
@@ -100,7 +112,7 @@ Hardware power, frequency, thermal state, and sensor data come from interfaces e
 
 Stress tests create real heat and power use. Users should save important work, choose an appropriate duration, keep the Mac ventilated, and observe thermal status. The app provides manual stopping and thermal protections, but it cannot remove every risk created by misuse, device variation, or the surrounding environment.
 
-This Beta is provided as is. To the maximum extent permitted by applicable law, SHIXIN LAB makes no additional warranty for third-party service interruption, hardware or network differences, misuse, or outcomes beyond the software’s control.
+This release is provided as is. To the maximum extent permitted by applicable law, SHIXIN LAB makes no additional warranty for third-party service interruption, hardware or network differences, misuse, or outcomes beyond the software’s control. The complete GPL warranty disclaimer is provided in the license text included with the repository and DMG.
 
 ## Privacy and Public Reports
 
