@@ -1,0 +1,18 @@
+SHIXIN LAB · 「芯脉」 MacCore Monitor - Third-Party Notices
+
+smartmontools / smartctl
+------------------------
+This build may include the smartctl command-line tool from the
+smartmontools project. The app invokes smartctl only for read-only SMART/NVMe
+temperature queries.
+
+Project: https://github.com/smartmontools/smartmontools
+Version used by this package: recorded in smartctl-version.txt next to this file
+Copyright: smartmontools contributors
+License: GNU General Public License, version 2 or (at your option) any later version
+
+The complete license text is included as smartmontools-COPYING.txt. When a
+public distribution bundles smartctl, the DMG Licenses directory also includes
+the corresponding source archive for the recorded version. Official upstream
+source and releases are available from the project URL above. No warranty is
+provided by smartmontools or SHIXIN LAB.

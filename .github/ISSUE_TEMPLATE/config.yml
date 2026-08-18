@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report / 安全问题
+    url: https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/security
+    about: Use private vulnerability reporting when available; do not post exploit details publicly.
+  - name: SHIXIN LAB website / SHIXIN LAB 官网
+    url: https://shixinqvq.com/
+    about: Official product and contact information.

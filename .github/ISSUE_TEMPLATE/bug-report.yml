@@ -1,0 +1,64 @@
+name: Bug report / 问题报告
+description: Report a reproducible XinMai problem without private device data.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve XinMai. Do not attach unredacted diagnostics, credentials, IP/MAC/BSSID/SSID values, serial numbers, UUIDs, UDIDs, or full local paths to a public issue.
+
+        感谢帮助改进「芯脉」。请勿在公开 Issue 附上未经脱敏的诊断包、凭据、IP/MAC/BSSID/SSID、序列号、UUID、UDID 或完整本机路径。
+  - type: input
+    id: app-version
+    attributes:
+      label: App version and build / App 版本与构建
+      placeholder: 0.3.0-beta (300)
+    validations:
+      required: true
+  - type: input
+    id: helper-version
+    attributes:
+      label: Helper version / Helper 版本
+      placeholder: 0.3.0-helper or not installed
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: macOS and Mac model / macOS 与 Mac 型号
+      placeholder: macOS version; Apple Silicon model (do not include serial numbers)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps / 复现步骤
+      description: Use the smallest repeatable sequence and state whether a stress or network action was started.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior / 实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: redacted-evidence
+    attributes:
+      label: Redacted evidence / 已脱敏证据
+      description: Paste only the minimum safe text or screenshots. Use private vulnerability reporting for security issues.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation / 隐私确认
+      options:
+        - label: I reviewed this issue and removed credentials, personal paths, device identifiers, network identifiers, and unredacted user data. / 我已移除凭据、个人路径、设备与网络标识及未脱敏用户数据。
+          required: true

@@ -1,0 +1,1 @@
+"NSLocationWhenInUseUsageDescription" = "現在のWi-FiのSSID、BSSID、国コードを読み取り、ローカルネットワーク診断を補完するために使用します。継続的な位置情報の取得やアップロードは行いません。";

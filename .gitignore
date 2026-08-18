@@ -1,0 +1,31 @@
+.DS_Store
+.build/
+Dist/
+Backups/
+*.xcuserdata/
+*.xcuserstate
+DerivedData/
+*.dmg
+*.app
+*.pkg
+*.zip
+*.log
+
+# Generated release and review artifacts
+/output/
+/tmp/
+
+# Local-only design sources, screenshots, and handoff context
+/LOGO图/
+/芯脉软件截屏/
+/AI_CONTEXT/
+/docs/handoffs/
+
+# Legacy internal-distribution materials retained only on the maintainer Mac
+/Packaging/00-安装说明-内测.txt
+/Packaging/01-内测验收清单.txt
+/Scripts/release-internal.sh
+/Testing/INTERNAL_TEST_RESULTS_0.3.0.md
+
+# Optional locally supplied third-party executable
+/Tools/smartctl

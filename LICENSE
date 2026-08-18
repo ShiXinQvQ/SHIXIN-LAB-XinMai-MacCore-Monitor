@@ -1,0 +1,40 @@
+SHIXIN LAB Source-Available Notice
+
+Copyright (c) 2026 SHIXIN LAB / Shixin.
+
+The original SHIXIN LAB app source code and original app assets in this
+repository are made available for public review, transparency, learning, and
+security inspection only.
+
+Unless a different license is explicitly added by SHIXIN LAB in writing, all
+rights are reserved. You may not copy, redistribute, sublicense, sell, publish
+modified versions, or use the original SHIXIN LAB app source code or original
+app assets in another product without prior written permission from SHIXIN LAB.
+
+Third-party components included or referenced by this repository remain under
+their own licenses. In particular, smartmontools / smartctl is an upstream
+open-source component licensed under GNU GPL-2.0-or-later; see the third-party
+notices under Packaging/ and the notices included with each applicable release.
+
+This notice does not change the license terms of any third-party component.
+This is a source-available license, not an OSI-approved open-source license.
+
+---
+
+SHIXIN LAB Source-Available 声明
+
+版权所有 (c) 2026 SHIXIN LAB / 失心。
+
+本仓库中的 SHIXIN LAB 原创 App 源码与原创 App 资产仅以 source-available
+方式提供，用于公开审查、透明说明、学习参考与安全检查。
+
+除非 SHIXIN LAB 后续以书面形式明确加入其他许可证，否则保留全部权利。未经
+SHIXIN LAB 事先书面许可，不得复制、再分发、再授权、销售、发布修改版本，或将
+SHIXIN LAB 原创 App 源码与原创 App 资产用于其他产品。
+
+本仓库包含或引用的第三方组件继续适用其各自许可证。特别是 smartmontools /
+smartctl 属于上游开源组件，使用 GNU GPL-2.0-or-later；相关第三方声明见
+Packaging/ 目录与适用发行包内附材料。
+
+本声明不改变任何第三方组件的许可证条款。本许可属于源码可见许可，不是 OSI
+批准的开源许可证。

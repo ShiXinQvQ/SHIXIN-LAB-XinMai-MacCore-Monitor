@@ -1,0 +1,1 @@
+"NSLocationWhenInUseUsageDescription" = "Allow access to read the current Wi-Fi SSID, BSSID, and country code for local network diagnostics. The app does not continuously track or upload your location.";
