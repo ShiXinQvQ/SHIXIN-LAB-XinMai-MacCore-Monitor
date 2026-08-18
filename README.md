@@ -5,8 +5,8 @@
 <h1 align="center">SHIXIN LAB · 「芯脉」 MacCore Monitor</h1>
 
 <p align="center">
-  让 Mac 看见性能脉动，也留下证据。<br>
-  See your Mac's performance pulse - and preserve the evidence.
+  让 Mac 的性能脉络，一目了然。<br>
+  Your Mac’s performance, clearly in view.
 </p>
 
 <p align="center">
