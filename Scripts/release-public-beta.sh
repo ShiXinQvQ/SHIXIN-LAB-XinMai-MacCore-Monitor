@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# Copyright (C) 2026 SHIXIN LAB / Shixin
+# SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -141,7 +144,7 @@ fi
   printf 'Brand assets / 品牌资产: See NOTICE.md / 见 NOTICE.md\n'
   printf 'smartctl: %s\n' "$SMARTCTL_STATUS"
   printf '\n'
-  printf 'Website / 官网: https://shixinqvq.com/lab/xinmai/\n'
+  printf 'Website / 官网: https://shixinqvq.com/lab/maccore/\n'
   printf 'Source / 源码: https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor\n'
   printf '\n'
   printf '%s\n' 'The SHA-256 file is distributed next to this DMG.'

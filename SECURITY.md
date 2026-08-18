@@ -11,14 +11,14 @@ the primary remediation target.
 
 ## Reporting a Vulnerability / 报告漏洞
 
-Use GitHub private vulnerability reporting when it is available. If it is not
-available, contact SHIXIN LAB through the official website first and provide
-only a minimal, redacted summary until a private channel is agreed:
+Use GitHub private vulnerability reporting. If that GitHub entry is temporarily
+unavailable, contact SHIXIN LAB through the official product page first and
+provide only a minimal, redacted summary until a private channel is agreed:
 
-若仓库已开放 GitHub 私密漏洞报告，请优先使用。若暂未开放，请先通过 SHIXIN
-LAB 官网联系，并仅提交经过脱敏的最小摘要，待确认私密渠道后再提供完整细节：
+请优先使用 GitHub 私密漏洞报告。若该入口暂时不可用，请先通过 SHIXIN LAB
+正式产品页联系，并仅提交经过脱敏的最小摘要，待确认私密渠道后再提供完整细节：
 
-- https://shixinqvq.com/
+- https://shixinqvq.com/lab/maccore/
 
 Do not post a working exploit, administrator credentials, diagnostic archives,
 full local paths, public or private IP addresses, serial numbers, Provisioning

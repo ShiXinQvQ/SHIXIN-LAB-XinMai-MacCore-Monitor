@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# Copyright (C) 2026 SHIXIN LAB / Shixin
+# SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -38,6 +41,28 @@ fi
 if git grep -I -n -E '^(<<<<<<<|=======|>>>>>>>)' -- . >/dev/null; then
   fail "merge-conflict markers remain in tracked text"
 fi
+
+if git grep -I -n -E 'shixinqvq\.com/lab/xinmai/|Advanced Access|performs no disk writes|不写盘|Source-Available' \
+  -- README.md Packaging/PublicBetaDocs Scripts/release-public-beta.sh >/dev/null; then
+  git grep -I -n -E 'shixinqvq\.com/lab/xinmai/|Advanced Access|performs no disk writes|不写盘|Source-Available' \
+    -- README.md Packaging/PublicBetaDocs Scripts/release-public-beta.sh >&2
+  fail "obsolete public-release wording remains"
+fi
+
+while IFS= read -r -d '' path; do
+  if ! grep -Fq 'SPDX-License-Identifier: GPL-3.0-or-later' "$path"; then
+    fail "source file is missing its GPL SPDX notice: $path"
+  fi
+done < <(
+  find Sources -type f \
+    \( -name '*.swift' -o -name '*.m' -o -name '*.h' \) -print0
+)
+
+for path in Package.swift Scripts/*.sh Scripts/*.py; do
+  if ! grep -Fq 'SPDX-License-Identifier: GPL-3.0-or-later' "$path"; then
+    fail "build or validation source is missing its GPL SPDX notice: $path"
+  fi
+done
 
 oversized=0
 while IFS= read -r -d '' path; do

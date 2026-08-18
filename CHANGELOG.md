@@ -40,3 +40,14 @@ Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容
 - SHIXIN LAB-owned program source is released under GPL-3.0-or-later; protected
   names, final v3 icon, screenshots, promotional artwork, and other brand assets
   remain subject to NOTICE.md.
+
+### Publication Maintenance / 公开发布维护
+
+- Aligned the GitHub README hero with the SHIXIN LAB product-family layout and
+  switched its fixed 128 × 128 display to the final v3 icon's 1024 × 1024 source.
+- Standardized the official product URL, visible permission labels, and precise
+  Helper filesystem boundary across the README, release documents, and package
+  manifest.
+- Added per-file GPL-3.0-or-later SPDX notices, public-source wording guards, and
+  macOS CI for source audit, metadata validation, release builds, and non-stress
+  self-tests.

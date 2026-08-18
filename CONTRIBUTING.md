@@ -60,7 +60,7 @@ plutil -lint Packaging/Info.plist \
   Sources/ShixinStressPower/Resources/en.lproj/Localizable.strings \
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings \
   Sources/ShixinStressPower/Resources/zh-Hans.lproj/Localizable.strings
-bash -n Scripts/build-app.sh Scripts/release-public-beta.sh
+bash -n Scripts/audit-public-source.sh Scripts/build-app.sh Scripts/release-public-beta.sh
 git diff --check
 ```
 

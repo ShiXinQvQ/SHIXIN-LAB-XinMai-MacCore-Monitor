@@ -1,10 +1,29 @@
-# SHIXIN LAB · 「芯脉」 MacCore Monitor
+<p align="center">
+  <img src="Packaging/AppIcon.appiconset/icon_512x512@2x.png" width="128" height="128" alt="SHIXIN LAB XinMai final v3 app icon">
+</p>
 
-**See your Mac's performance pulse - and preserve the evidence.**
+<h1 align="center">SHIXIN LAB · 「芯脉」 MacCore Monitor</h1>
 
-[English](#english) · [简体中文](#简体中文)
+<p align="center">
+  让 Mac 看见性能脉动，也留下证据。<br>
+  See your Mac's performance pulse - and preserve the evidence.
+</p>
 
-![SHIXIN LAB XinMai app icon and interface preview](Packaging/AppIconPreviewInApp.png)
+<p align="center">
+  <a href="#download"><strong>Download / 下载</strong></a> ·
+  <a href="https://shixinqvq.com/lab/maccore/">Product Page / 产品官网</a> ·
+  <a href="SECURITY.md">Security / 安全</a> ·
+  <a href="#project-structure">Architecture / 架构</a> ·
+  <a href="CONTRIBUTING.md">Contributing / 参与贡献</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta"><img alt="release v0.3.0-beta" src="https://img.shields.io/badge/release-v0.3.0--beta-0A84FF?style=flat-square"></a>
+  <img alt="source GPL-3.0-or-later" src="https://img.shields.io/badge/source-GPL--3.0--or--later-2EA44F?style=flat-square">
+  <img alt="macOS 15 or later" src="https://img.shields.io/badge/macOS-15%2B-555555?style=flat-square">
+  <img alt="Apple Silicon arm64" src="https://img.shields.io/badge/Apple%20Silicon-arm64-555555?style=flat-square">
+  <img alt="Swift 6" src="https://img.shields.io/badge/Swift-6-F05138?style=flat-square">
+</p>
 
 <a id="english"></a>
 
@@ -21,13 +40,15 @@ official SHIXIN LAB project. SHIXIN LAB is Shixin's independent technology lab
 and product identity for software, hardware, creator tools, and digital
 experiments.
 
-- Product page: [https://shixinqvq.com/lab/xinmai/](https://shixinqvq.com/lab/xinmai/)
+- Product page: [https://shixinqvq.com/lab/maccore/](https://shixinqvq.com/lab/maccore/)
 - SHIXIN LAB: [https://shixinqvq.com/](https://shixinqvq.com/)
 - Current release: `v0.3.0 Beta` (build `300`)
 - Helper: `0.3.0-helper`
 - Minimum system: macOS `15.0+`
 - Architecture: Apple Silicon / `arm64`
 - Source license: GNU GPL v3 or later (`GPL-3.0-or-later`)
+
+[中文说明见下方](#简体中文)
 
 ### Download
 
@@ -37,7 +58,7 @@ matching checksum from the same GitHub Release:
 - [Download the v0.3.0 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg)
 - [Download the matching SHA-256 file](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256)
 - [Release notes and source archive](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta)
-- [Official product page](https://shixinqvq.com/lab/xinmai/)
+- [Official product page](https://shixinqvq.com/lab/maccore/)
 
 Verify the DMG before opening it:
 
@@ -52,7 +73,7 @@ Continue only when the result reports `OK`.
 1. Open the DMG.
 2. Drag `SHIXIN LAB · 「芯脉」.app` onto the `Applications` shortcut.
 3. Launch XinMai from Applications.
-4. Open **Settings & About > Advanced Access** and install the local Helper for
+4. Open **Settings & About > Advanced Permissions** and install the local Helper for
    complete hardware telemetry.
 
 The DMG includes a bilingual installation guide, copyright and open-source
@@ -143,7 +164,8 @@ The Helper:
 - accepts only fixed local `ping` and `sample` requests;
 - does not accept arbitrary shell commands, arguments, or paths;
 - does not access the network;
-- performs no disk writes, repair, erase, format, mount, or unmount operation;
+- does not write user data or perform disk repair, erase, format, mount, or
+  unmount operations;
 - stops continuous sampling after requests become idle.
 
 Installed components:
@@ -246,7 +268,7 @@ smartmontools / smartctl is licensed under `GPL-2.0-or-later`; see
 旗下正式项目。SHIXIN LAB 是失心个人 IP 下的独立技术实验室与产品标识，面向
 软件、硬件、创作者工具和数字实验。
 
-- 产品官网：[https://shixinqvq.com/lab/xinmai/](https://shixinqvq.com/lab/xinmai/)
+- 产品官网：[https://shixinqvq.com/lab/maccore/](https://shixinqvq.com/lab/maccore/)
 - SHIXIN LAB 官网：[https://shixinqvq.com/](https://shixinqvq.com/)
 - 当前发布版本：`v0.3.0 Beta`（build `300`）
 - Helper：`0.3.0-helper`
@@ -262,7 +284,7 @@ smartmontools / smartctl is licensed under `GPL-2.0-or-later`; see
 - [下载 v0.3.0 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg)
 - [下载配套 SHA-256 文件](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256)
 - [版本说明与源码归档](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta)
-- [正式产品官网](https://shixinqvq.com/lab/xinmai/)
+- [正式产品官网](https://shixinqvq.com/lab/maccore/)
 
 首次打开前验证 DMG：
 
@@ -277,7 +299,7 @@ shasum -a 256 -c SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256
 1. 打开 DMG。
 2. 将 `SHIXIN LAB · 「芯脉」.app` 拖到 `Applications` 快捷方式。
 3. 从“应用程序”文件夹启动「芯脉」。
-4. 进入 **设置与关于 > 高级权限**，安装本地 Helper 以获得完整硬件遥测。
+4. 进入 **设置关于 > 高级权限**，安装本地 Helper 以获得完整硬件遥测。
 
 DMG 内附正式中英双语安装说明、版权与开源许可说明、第三方声明和发行清单。
 替换 App 不会自动删除现有本机历史。
@@ -353,7 +375,7 @@ Helper：
 - 只接受固定的本机 `ping` 与 `sample` 请求；
 - 不接受任意 shell、命令参数或路径；
 - 不访问网络；
-- 不写盘、不修复、不擦除、不格式化、不挂载或卸载磁盘；
+- 不写入用户数据，也不执行磁盘修复、擦除、格式化、挂载或卸载操作；
 - 无采样请求后停止持续采样并待机。
 
 安装位置：

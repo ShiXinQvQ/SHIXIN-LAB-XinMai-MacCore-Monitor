@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Copyright (C) 2026 SHIXIN LAB / Shixin
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from __future__ import annotations
 
 import re
@@ -28,7 +31,7 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "Packaging" / "PublicBetaDocs"
 OUTPUT_DIR = ROOT / "output" / "pdf"
-ICON_PATH = ROOT / "Packaging" / "AppIcon.iconset" / "icon_512x512.png"
+ICON_PATH = ROOT / "Packaging" / "AppIcon.iconset" / "icon_512x512@2x.png"
 
 LIGHT_FONT = "/System/Library/Fonts/STHeiti Light.ttc"
 MEDIUM_FONT = "/System/Library/Fonts/STHeiti Medium.ttc"
@@ -279,7 +282,7 @@ def build_pdf(markdown_name: str, output_name: str, subtitle: str, compact: bool
         pagesize=A4,
         rightMargin=18 * mm,
         leftMargin=18 * mm,
-        topMargin=21 * mm,
+        topMargin=19 * mm,
         bottomMargin=19 * mm,
         title=subtitle,
         author="SHIXIN LAB / Shixin",
@@ -287,11 +290,11 @@ def build_pdf(markdown_name: str, output_name: str, subtitle: str, compact: bool
         creator="SHIXIN LAB Release Documentation",
     )
 
-    story: list = [Spacer(1, 24 * mm)]
+    story: list = [Spacer(1, 14 * mm)]
     if ICON_PATH.exists():
         icon = Image(str(ICON_PATH), width=28 * mm, height=28 * mm)
         icon.hAlign = "LEFT"
-        story.extend([icon, Spacer(1, 12 * mm)])
+        story.extend([icon, Spacer(1, 6 * mm)])
     story.append(Paragraph(brand_markup(separator_size=18), styles["cover_title"]))
     story.append(Paragraph(subtitle, styles["cover_subtitle"]))
     story.append(

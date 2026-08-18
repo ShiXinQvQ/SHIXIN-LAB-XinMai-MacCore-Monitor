@@ -1,3 +1,6 @@
+// Copyright (C) 2026 SHIXIN LAB / Shixin
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import AppKit
 import ShixinStressPowerCore
 import SwiftUI

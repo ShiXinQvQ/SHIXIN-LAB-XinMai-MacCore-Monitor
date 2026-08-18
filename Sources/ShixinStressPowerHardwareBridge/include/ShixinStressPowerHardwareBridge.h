@@ -1,3 +1,6 @@
+// Copyright (C) 2026 SHIXIN LAB / Shixin
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN

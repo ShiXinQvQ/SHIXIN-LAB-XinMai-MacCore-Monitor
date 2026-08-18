@@ -45,7 +45,7 @@ SHA-256 校验文件与 DMG 一同发布，不在 DMG 内。请始终把两者�
 
 首次启动后，进入“设置关于 > 高级权限”，选择“安装 Helper”。macOS 会要求管理员授权，把只读硬件采样 Helper 安装为 LaunchDaemon。App 本身不会以 root 运行，也不会保存管理员密码。
 
-Helper 只接受固定的本机 ping 与 sample 请求，用于读取 powermetrics 与硬件遥测；它不负责联网。网速测试、国际网络诊断与 IP 分析均由普通 App 进程在用户主动操作后执行。
+Helper 只接受固定的本机 ping 与 sample 请求，用于读取 powermetrics 与硬件遥测；它不负责联网，不写入用户数据，也不执行磁盘修复、擦除、格式化、挂载或卸载操作。网速测试、国际网络诊断与 IP 分析均由普通 App 进程在用户主动操作后执行。
 
 Helper 组件位置：
 
@@ -85,7 +85,7 @@ Helper 组件位置：
 
 遇到问题时，请在“设置关于”中生成诊断报告，并附上 App 版本/构建、macOS 版本、Mac 型号、复现步骤和预期结果。公开提交前请先检查并脱敏。
 
-- 官网：https://shixinqvq.com/lab/xinmai/
+- 官网：https://shixinqvq.com/lab/maccore/
 - 源码与问题反馈：https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
 
 <!-- PAGEBREAK -->
@@ -131,9 +131,9 @@ To verify the download in Terminal, place the DMG and its matching `.sha256` fil
 
 ## Install the Local Helper
 
-Open “Settings & About > Advanced Access” and choose “Install Helper”. macOS requests administrator authorization to install the read-only telemetry Helper as a LaunchDaemon. The app itself does not run as root and never stores the administrator password.
+Open “Settings & About > Advanced Permissions” and choose “Install Helper”. macOS requests administrator authorization to install the read-only telemetry Helper as a LaunchDaemon. The app itself does not run as root and never stores the administrator password.
 
-The Helper accepts only fixed local ping and sample requests for powermetrics and hardware telemetry; it does not perform network access. Speed tests, international diagnostics, and IP analysis run in the normal app process only after an explicit user action.
+The Helper accepts only fixed local ping and sample requests for powermetrics and hardware telemetry. It does not access the network, write user data, or perform disk repair, erase, format, mount, or unmount operations. Speed tests, international diagnostics, and IP analysis run in the normal app process only after an explicit user action.
 
 Installed Helper components:
 
@@ -141,7 +141,7 @@ Installed Helper components:
 - /Library/LaunchDaemons/com.shixinqvq.shixinlab.macstresspower.helper.plist
 - /var/run/com.shixinqvq.shixinlab.macstresspower.helper.sock
 
-After installation, Advanced Access should report Helper version `0.3.0-helper`. Use the update action on the same page if the versions differ.
+After installation, Advanced Permissions should report Helper version `0.3.0-helper`. Use the update action on the same page if the versions differ.
 
 ## Essential Workflows
 
@@ -175,5 +175,5 @@ To uninstall, first choose “Uninstall Helper” in Settings & About, then move
 
 For support, generate a diagnostic report under Settings & About and include the app version/build, macOS version, Mac model, reproduction steps, and expected result. Review and redact the report before public submission.
 
-- Website: https://shixinqvq.com/lab/xinmai/
+- Website: https://shixinqvq.com/lab/maccore/
 - Source and issues: https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor

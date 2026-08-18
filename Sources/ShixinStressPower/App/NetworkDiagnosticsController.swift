@@ -1,3 +1,6 @@
+// Copyright (C) 2026 SHIXIN LAB / Shixin
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 @preconcurrency import CoreLocation
 import CoreWLAN
 import Darwin
