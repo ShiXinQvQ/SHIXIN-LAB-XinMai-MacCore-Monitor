@@ -43,6 +43,9 @@ jobs:
             Sources/ShixinStressPower/Resources/en.lproj/Localizable.strings \
             Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings
           bash -n Scripts/audit-public-source.sh Scripts/build-app.sh Scripts/release-public-beta.sh
+          python3 -m py_compile \
+            Scripts/generate-public-beta-pdfs.py \
+            Scripts/verify-public-beta-pdfs.py
           git diff --check
 
       - name: Build app and Helper

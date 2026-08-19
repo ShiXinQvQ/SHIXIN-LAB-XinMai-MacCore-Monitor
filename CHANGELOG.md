@@ -52,3 +52,9 @@ Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容
 - Added per-file GPL-3.0-or-later SPDX notices, public-source wording guards, and
   macOS CI for source audit, metadata validation, release builds, and non-stress
   self-tests.
+- Hardened future official packaging so it requires a clean Git source tree and
+  records the exact source commit, embedded App provenance, and App/Helper
+  executable SHA-256 values.
+- Added a pinned, source-hashed bilingual-PDF manifest and corrected the public
+  test matrix to distinguish automatic core-only checks from real-device stress
+  and macOS 15 compatibility coverage.

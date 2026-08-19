@@ -5,10 +5,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import plistlib
 import re
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+import reportlab
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
@@ -32,6 +36,26 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "Packaging" / "PublicBetaDocs"
 OUTPUT_DIR = ROOT / "output" / "pdf"
 ICON_PATH = ROOT / "Packaging" / "AppIcon.iconset" / "icon_512x512@2x.png"
+INFO_PLIST_PATH = ROOT / "Packaging" / "Info.plist"
+HELPER_PROTOCOL_PATH = ROOT / "Sources" / "ShixinStressPowerCore" / "HelperProtocol.swift"
+
+INSTALL_OUTPUT_NAME = "SHIXIN LAB - XinMai - Installation Guide - zh-Hans & English.pdf"
+LEGAL_OUTPUT_NAME = "SHIXIN LAB - XinMai - Copyright, Open Source License & Third-Party Notices - zh-Hans & English.pdf"
+MANIFEST_PATH = OUTPUT_DIR / "SHIXIN-LAB-XinMai-PDF-SOURCE-MANIFEST.json"
+
+SOURCE_FILES = (
+    "LICENSE",
+    "NOTICE.md",
+    "Packaging/AppIcon.iconset/icon_512x512@2x.png",
+    "Packaging/Info.plist",
+    "Packaging/PublicBetaDocs/COPYRIGHT_AND_LICENSES_BILINGUAL.md",
+    "Packaging/PublicBetaDocs/INSTALLATION_GUIDE_BILINGUAL.md",
+    "Packaging/THIRD-PARTY-NOTICES.txt",
+    "Packaging/smartmontools-COPYING.txt",
+    "Scripts/generate-public-beta-pdfs.py",
+    "Scripts/requirements-public-beta-docs.txt",
+    "Sources/ShixinStressPowerCore/HelperProtocol.swift",
+)
 
 LIGHT_FONT = "/System/Library/Fonts/STHeiti Light.ttc"
 MEDIUM_FONT = "/System/Library/Fonts/STHeiti Medium.ttc"
@@ -44,6 +68,63 @@ PALE_CYAN = colors.HexColor("#EAF9FE")
 LINE = colors.HexColor("#D9E4EB")
 WHITE = colors.white
 BRAND_TEXT = "SHIXIN LAB · 「芯脉」"
+
+
+def release_metadata() -> dict[str, str]:
+    with INFO_PLIST_PATH.open("rb") as handle:
+        info = plistlib.load(handle)
+    helper_source = HELPER_PROTOCOL_PATH.read_text(encoding="utf-8")
+    helper_match = re.search(r'helperVersion\s*=\s*"([^"]+)"', helper_source)
+    if helper_match is None:
+        raise RuntimeError("Could not read Helper version from HelperProtocol.swift")
+    return {
+        "app_version": str(info["CFBundleShortVersionString"]),
+        "app_build": str(info["CFBundleVersion"]),
+        "helper_version": helper_match.group(1),
+    }
+
+
+RELEASE = release_metadata()
+APP_VERSION = RELEASE["app_version"]
+APP_BUILD = RELEASE["app_build"]
+HELPER_VERSION = RELEASE["helper_version"]
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_document_metadata() -> None:
+    for path in SOURCE_DIR.glob("*.md"):
+        text = path.read_text(encoding="utf-8")
+        for value, label in (
+            (APP_VERSION, "app version"),
+            (APP_BUILD, "app build"),
+            (HELPER_VERSION, "Helper version"),
+        ):
+            if value not in text:
+                raise RuntimeError(f"{path.name} is missing current {label}: {value}")
+
+
+def write_source_manifest() -> None:
+    manifest = {
+        "schema": 1,
+        "release": RELEASE,
+        "generator": {"reportlab": str(reportlab.Version)},
+        "sources": {relative: sha256(ROOT / relative) for relative in SOURCE_FILES},
+        "outputs": {
+            f"output/pdf/{INSTALL_OUTPUT_NAME}": sha256(OUTPUT_DIR / INSTALL_OUTPUT_NAME),
+            f"output/pdf/{LEGAL_OUTPUT_NAME}": sha256(OUTPUT_DIR / LEGAL_OUTPUT_NAME),
+        },
+    }
+    MANIFEST_PATH.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def brand_markup(separator_size: float | None = None) -> str:
@@ -87,7 +168,7 @@ def draw_mixed_footer(canvas, x: float, y: float) -> None:
         ("Helvetica", 7.2, " · "),
         ("XinMaiSans", 8, "「芯脉」 MacCore Monitor"),
         ("Helvetica", 7.2, " · "),
-        ("XinMaiSans", 8, "0.3.0-beta"),
+        ("XinMaiSans", 8, APP_VERSION),
     )
     cursor = x
     for font_name, font_size, text in segments:
@@ -286,7 +367,7 @@ def build_pdf(markdown_name: str, output_name: str, subtitle: str, compact: bool
         bottomMargin=19 * mm,
         title=subtitle,
         author="SHIXIN LAB / Shixin",
-        subject="SHIXIN LAB · 「芯脉」 MacCore Monitor 0.3.0-beta",
+        subject=f"SHIXIN LAB · 「芯脉」 MacCore Monitor {APP_VERSION}",
         creator="SHIXIN LAB Release Documentation",
     )
 
@@ -300,7 +381,7 @@ def build_pdf(markdown_name: str, output_name: str, subtitle: str, compact: bool
     story.append(
         Paragraph(
             inline_markup(
-                "MacCore Monitor · Version 0.3.0-beta · Build 300"
+                f"MacCore Monitor · Version {APP_VERSION} · Build {APP_BUILD}"
             )
             + "<br/>"
             + inline_markup("Apple Silicon · macOS 15+ · Local-first"),
@@ -313,18 +394,21 @@ def build_pdf(markdown_name: str, output_name: str, subtitle: str, compact: bool
 
 
 def main() -> None:
+    validate_document_metadata()
     register_fonts()
     build_pdf(
         "INSTALLATION_GUIDE_BILINGUAL.md",
-        "SHIXIN LAB - XinMai - Installation Guide - zh-Hans & English.pdf",
+        INSTALL_OUTPUT_NAME,
         "安装与使用说明 | Installation & Usage Guide",
     )
     build_pdf(
         "COPYRIGHT_AND_LICENSES_BILINGUAL.md",
-        "SHIXIN LAB - XinMai - Copyright, Open Source License & Third-Party Notices - zh-Hans & English.pdf",
+        LEGAL_OUTPUT_NAME,
         "版权、开源许可与第三方声明 | Copyright, Open Source License & Third-Party Notices",
         compact=True,
     )
+    write_source_manifest()
+    print(f"Generated and recorded: {MANIFEST_PATH}")
 
 
 if __name__ == "__main__":

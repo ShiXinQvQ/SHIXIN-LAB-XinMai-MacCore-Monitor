@@ -12,8 +12,13 @@ INFO_PLIST="$ROOT_DIR/Packaging/Info.plist"
 APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST")"
 APP_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")"
 EXPECTED_HELPER_VERSION="$(sed -n 's/.*helperVersion = "\([^"]*\)".*/\1/p' "$ROOT_DIR/Sources/ShixinStressPowerCore/HelperProtocol.swift" | head -n 1)"
-SOURCE_COMMIT="$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)"
-SOURCE_CHANGE_COUNT="$(git -C "$ROOT_DIR" status --porcelain | wc -l | tr -d ' ')"
+SOURCE_COMMIT="$(git -C "$ROOT_DIR" rev-parse --verify HEAD)"
+SOURCE_WORKTREE_STATUS="$(git -C "$ROOT_DIR" status --porcelain=v1 --untracked-files=all)"
+if [ -n "$SOURCE_WORKTREE_STATUS" ]; then
+  printf '%s\n' 'Official release packaging requires a clean Git working tree:' >&2
+  printf '%s\n' "$SOURCE_WORKTREE_STATUS" >&2
+  exit 1
+fi
 STAMP="$(date +%Y%m%d-%H%M%S)"
 APP_VERSION_FILENAME="$(printf '%s' "$APP_VERSION" | sed 's/-beta/-Beta/')"
 DIST_DIR="$ROOT_DIR/Dist/Release-${APP_VERSION}-${STAMP}"
@@ -21,6 +26,7 @@ DMG_PATH="$DIST_DIR/SHIXIN-LAB-XinMai-MacCore-Monitor-${APP_VERSION_FILENAME}.dm
 DMG_FILENAME="$(basename "$DMG_PATH")"
 INSTALL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Installation Guide - zh-Hans & English.pdf"
 LEGAL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Copyright, Open Source License & Third-Party Notices - zh-Hans & English.pdf"
+PDF_SOURCE_MANIFEST="$ROOT_DIR/output/pdf/SHIXIN-LAB-XinMai-PDF-SOURCE-MANIFEST.json"
 WORK_ROOT="$(mktemp -d /private/tmp/xinmai-public-beta.XXXXXX)"
 APP_OUTPUT="$WORK_ROOT/app"
 SCRATCH_PATH="$WORK_ROOT/swift-build"
@@ -60,6 +66,8 @@ plutil -lint \
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings
 test -s "$INSTALL_PDF"
 test -s "$LEGAL_PDF"
+test -s "$PDF_SOURCE_MANIFEST"
+python3 Scripts/verify-public-beta-pdfs.py --manifest "$PDF_SOURCE_MANIFEST"
 
 ruby -e '
   ARGV.each do |path|
@@ -76,7 +84,9 @@ ruby -e '
   Sources/ShixinStressPower/Resources/en.lproj/Localizable.strings \
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings
 
-echo "[2/9] Run the non-stress core release self-test"
+echo "[2/9] Build current source and run the non-stress core release self-test"
+swift build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPower
+swift build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerHelper
 swift run --scratch-path "$SCRATCH_PATH" -c release ShixinStressPowerSelfTest --core-only
 
 echo "[3/9] Build or import the isolated release candidate"
@@ -84,22 +94,36 @@ mkdir -p "$APP_OUTPUT" "$STAGE_DIR" "$MOUNT_DIR" "$DIST_DIR"
 if [ -n "${SHIXIN_RELEASE_APP_SOURCE:-}" ]; then
   test -d "$SHIXIN_RELEASE_APP_SOURCE"
   ditto "$SHIXIN_RELEASE_APP_SOURCE" "$APP_OUTPUT/${APP_NAME}.app"
+  APP_BUILD_ORIGIN="imported release candidate with embedded provenance"
 else
   SHIXIN_APP_INSTALL_DIR="$APP_OUTPUT" \
   SHIXIN_SWIFT_SCRATCH_PATH="$SCRATCH_PATH" \
     Scripts/build-app.sh
+  APP_BUILD_ORIGIN="built from the clean release source"
 fi
 
 BUILT_APP="$APP_OUTPUT/${APP_NAME}.app"
 BUILT_HELPER="$BUILT_APP/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL"
+APP_PROVENANCE="$BUILT_APP/Contents/Resources/SHIXIN-LAB-Build-Provenance.txt"
 test -x "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME"
 test -x "$BUILT_HELPER"
+test -s "$APP_PROVENANCE"
+grep -Fx 'Schema: 1' "$APP_PROVENANCE" >/dev/null
+grep -Fx "Source commit: $SOURCE_COMMIT" "$APP_PROVENANCE" >/dev/null
+grep -Fx 'Source working tree: clean' "$APP_PROVENANCE" >/dev/null
+grep -Fx 'Build script: Scripts/build-app.sh' "$APP_PROVENANCE" >/dev/null
+grep -Fx "App version: $APP_VERSION" "$APP_PROVENANCE" >/dev/null
+grep -Fx "App build: $APP_BUILD" "$APP_PROVENANCE" >/dev/null
+grep -Fx "Helper version: $EXPECTED_HELPER_VERSION" "$APP_PROVENANCE" >/dev/null
 codesign --verify --deep --strict --verbose=2 "$BUILT_APP"
 codesign --verify --strict --verbose=2 "$BUILT_HELPER"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$BUILT_APP/Contents/Info.plist")" = "$APP_VERSION"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$BUILT_APP/Contents/Info.plist")" = "$APP_BUILD"
 strings "$BUILT_HELPER" | grep -Fx "$EXPECTED_HELPER_VERSION" >/dev/null
 file "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME" | grep -F "arm64" >/dev/null
+APP_EXECUTABLE_SHA256="$(shasum -a 256 "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME" | awk '{print $1}')"
+HELPER_EXECUTABLE_SHA256="$(shasum -a 256 "$BUILT_HELPER" | awk '{print $1}')"
+PDF_SOURCE_MANIFEST_SHA256="$(shasum -a 256 "$PDF_SOURCE_MANIFEST" | awk '{print $1}')"
 
 if [ -x "$BUILT_APP/Contents/Resources/Tools/smartctl" ]; then
   test -n "${SHIXIN_SMARTMONTOOLS_SOURCE_ARCHIVE:-}"
@@ -121,6 +145,7 @@ cp LICENSE "$STAGE_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
 cp NOTICE.md "$STAGE_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 cp Packaging/THIRD-PARTY-NOTICES.txt "$STAGE_DIR/Licenses/THIRD-PARTY-NOTICES.txt"
 cp Packaging/smartmontools-COPYING.txt "$STAGE_DIR/Licenses/smartmontools-COPYING.txt"
+cp "$PDF_SOURCE_MANIFEST" "$STAGE_DIR/Licenses/SHIXIN-LAB-PDF-SOURCE-MANIFEST.json"
 if [ -s "$BUILT_APP/Contents/Resources/Licenses/smartctl-version.txt" ]; then
   cp "$BUILT_APP/Contents/Resources/Licenses/smartctl-version.txt" "$STAGE_DIR/Licenses/smartctl-version.txt"
 fi
@@ -136,7 +161,11 @@ fi
   printf 'Build / 构建: %s\n' "$APP_BUILD"
   printf 'Helper version / Helper 版本: %s\n' "$EXPECTED_HELPER_VERSION"
   printf 'Source baseline / 源码基线: %s\n' "$SOURCE_COMMIT"
-  printf 'Release working-tree entries / 发行工作区条目: %s\n' "$SOURCE_CHANGE_COUNT"
+  printf 'Source working tree / 源码工作区: clean (required)\n'
+  printf 'App build origin / App 构建来源: %s\n' "$APP_BUILD_ORIGIN"
+  printf 'App executable SHA-256 / App 主程序 SHA-256: %s\n' "$APP_EXECUTABLE_SHA256"
+  printf 'Helper executable SHA-256 / Helper SHA-256: %s\n' "$HELPER_EXECUTABLE_SHA256"
+  printf 'PDF source manifest SHA-256 / PDF 源文件清单 SHA-256: %s\n' "$PDF_SOURCE_MANIFEST_SHA256"
   printf 'Generated / 生成时间: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   printf 'Architecture / 架构: Apple Silicon arm64\n'
   printf 'Minimum system / 最低系统: macOS 15.0\n'
@@ -175,6 +204,7 @@ test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
 test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 test -s "$MOUNT_DIR/Licenses/THIRD-PARTY-NOTICES.txt"
 test -s "$MOUNT_DIR/Licenses/smartmontools-COPYING.txt"
+test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-PDF-SOURCE-MANIFEST.json"
 codesign --verify --deep --strict --verbose=2 "$MOUNTED_APP"
 codesign --verify --strict --verbose=2 "$MOUNTED_HELPER"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$MOUNTED_APP/Contents/Info.plist")" = "$APP_VERSION"
@@ -186,6 +216,9 @@ cmp -s "$INSTALL_PDF" "$MOUNT_DIR/安装与使用说明 - Installation Guide.pdf
 cmp -s "$LEGAL_PDF" "$MOUNT_DIR/版权、开源许可与第三方声明 - Copyright, Open Source License and Third-Party Notices.pdf"
 cmp -s LICENSE "$MOUNT_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
 cmp -s NOTICE.md "$MOUNT_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
+cmp -s "$PDF_SOURCE_MANIFEST" "$MOUNT_DIR/Licenses/SHIXIN-LAB-PDF-SOURCE-MANIFEST.json"
+cmp -s "$STAGE_DIR/Release Manifest - 发行清单.txt" "$MOUNT_DIR/Release Manifest - 发行清单.txt"
+cmp -s "$APP_PROVENANCE" "$MOUNTED_APP/Contents/Resources/SHIXIN-LAB-Build-Provenance.txt"
 
 if [ -x "$MOUNTED_APP/Contents/Resources/Tools/smartctl" ]; then
   test -s "$MOUNTED_APP/Contents/Resources/Licenses/THIRD-PARTY-NOTICES.txt"

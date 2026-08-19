@@ -58,7 +58,7 @@ done < <(
     \( -name '*.swift' -o -name '*.m' -o -name '*.h' \) -print0
 )
 
-for path in Package.swift Scripts/*.sh Scripts/*.py Scripts/*.swift; do
+for path in Package.swift Scripts/*.sh Scripts/*.py Scripts/*.swift Scripts/requirements-public-beta-docs.txt; do
   if ! grep -Fq 'SPDX-License-Identifier: GPL-3.0-or-later' "$path"; then
     fail "build or validation source is missing its GPL SPDX notice: $path"
   fi

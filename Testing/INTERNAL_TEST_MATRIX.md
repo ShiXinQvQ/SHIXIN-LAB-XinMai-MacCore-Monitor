@@ -19,15 +19,19 @@ Scripts/release-public-beta.sh
 
 | 门禁 | 标准 |
 |---|---|
+| 源码基线 | Git 工作区必须干净；App 内构建来源必须匹配当前完整提交 |
 | plist 与三语资源 | 全部通过 `plutil -lint` |
-| 当前 SDK | `swift build` 通过 |
-| Core/Helper/压力路径 | 完整 `ShixinStressPowerSelfTest` 通过 |
-| macOS 15 SDK | 15.4 SDK 全产品编译通过 |
+| 当前 SDK | App 与 Helper 的 release 构建通过 |
+| 可复现核心逻辑 | `ShixinStressPowerSelfTest --core-only` 非压力自检通过 |
+| 双语 PDF | PDF、源 Markdown、生成脚本、图标、版本元数据与法律材料的 SHA-256 清单一致 |
 | App | release 构建、版本与 ad-hoc 签名正确 |
 | Helper | bundle 内存在、签名正确、版本为 `0.3.0-helper` |
 | 第三方材料 | smartctl 存在时，版本、SHA-256、声明与 GPL 文件齐全 |
 | DMG | 创建、`hdiutil verify`、只读挂载、卷内签名与结构通过 |
 | 校验和 | `.sha256` 生成并回读验证通过 |
+
+自动门禁不会运行真实压力负载，也不会假装覆盖当前机器未安装的 macOS 15.4 SDK。
+真实遥测、压力路径和最低系统兼容性分别由下方 M1–M4 真机矩阵验收。
 
 ## 关键机器覆盖
 

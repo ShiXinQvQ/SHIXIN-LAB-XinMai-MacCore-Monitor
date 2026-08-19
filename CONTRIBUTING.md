@@ -61,8 +61,31 @@ plutil -lint Packaging/Info.plist \
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings \
   Sources/ShixinStressPower/Resources/zh-Hans.lproj/Localizable.strings
 bash -n Scripts/audit-public-source.sh Scripts/build-app.sh Scripts/release-public-beta.sh
+python3 -m py_compile Scripts/generate-public-beta-pdfs.py Scripts/verify-public-beta-pdfs.py
 git diff --check
 ```
+
+Before official packaging, generate and review the bilingual PDFs with the
+pinned documentation dependency, then verify their source manifest:
+
+```bash
+python3 -m pip install --requirement Scripts/requirements-public-beta-docs.txt
+python3 Scripts/generate-public-beta-pdfs.py
+python3 Scripts/verify-public-beta-pdfs.py
+```
+
+The generated PDFs and manifest remain local release artifacts. The official
+release script requires a clean Git working tree and refuses PDFs that no longer
+match their Markdown, generator, icon, release metadata, or legal inputs. An
+imported app must have been produced from the same clean commit by
+`Scripts/build-app.sh`; its embedded provenance and executable hashes are
+recorded in the release manifest.
+
+正式打包前，请使用锁定版本的文档依赖生成并人工检查双语 PDF，再运行上述
+PDF 源文件清单校验。生成的 PDF 与清单属于本地发行产物，不提交到源码仓库。
+正式发布脚本要求 Git 工作区干净；PDF 与 Markdown、生成脚本、图标、版本元数据
+或法律材料不一致时会拒绝打包。导入的 App 必须由同一干净提交下的
+`Scripts/build-app.sh` 生成，其内置构建来源与二进制摘要会写入发行清单。
 
 UI, real telemetry, Helper lifecycle, network behavior, packaging, and macOS
 compatibility changes require focused validation beyond a successful compile.
