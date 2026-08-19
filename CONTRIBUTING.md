@@ -4,7 +4,7 @@ Thank you for reviewing SHIXIN LAB · 「芯脉」 MacCore Monitor. Before propo
 a change, read `README.md`, `SECURITY.md`, `LICENSE`, `NOTICE.md`, and the
 relevant test matrix under `Testing/`.
 
-感谢你审查 SHIXIN LAB ·「芯脉」MacCore Monitor。提交修改前，请先阅读
+感谢你审查 SHIXIN LAB · 「芯脉」 MacCore Monitor。提交修改前，请先阅读
 `README.md`、`SECURITY.md`、`LICENSE`、`NOTICE.md` 与 `Testing/`
 中相关测试矩阵。
 

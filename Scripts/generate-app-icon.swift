@@ -1,5 +1,8 @@
 #!/usr/bin/env swift
 
+// Copyright (C) 2026 SHIXIN LAB / Shixin
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import Accelerate
 import CoreGraphics
 import Foundation
