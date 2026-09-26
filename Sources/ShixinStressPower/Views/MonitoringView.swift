@@ -69,7 +69,7 @@ struct HelperTelemetryBanner: View {
 
     private var textBlock: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(L10n.t(appState.helperStatus.needsUpdate ? "Helper 需要更新" : "建议安装 Helper"))
+            Text(L10n.t(canRepair ? appState.helperStatus.title : (appState.helperStatus.needsUpdate ? "Helper 需要更新" : "建议安装 Helper")))
                 .font(.headline)
             Text(L10n.t(bannerMessage))
                 .font(.callout)
@@ -95,7 +95,7 @@ struct HelperTelemetryBanner: View {
             .disabled(appState.helperActionInProgress)
 
             Button {
-                appState.installHelper()
+                if canRepair { appState.repairHelper() } else { appState.installHelper() }
             } label: {
                 Label(L10n.t(primaryActionTitle), systemImage: "arrow.down.app.fill")
             }
@@ -116,14 +116,24 @@ struct HelperTelemetryBanner: View {
 
     private var primaryActionTitle: String {
         if appState.helperActionInProgress {
+            if canRepair { return "正在修复" }
             return appState.helperStatus.needsUpdate ? "正在更新" : "正在安装"
         }
+        if canRepair { return "修复 Helper" }
         return appState.helperStatus.needsUpdate ? "更新 Helper" : "安装 Helper"
     }
 
+    private var canRepair: Bool {
+        appState.helperStatus.helperExists && appState.helperStatus.plistExists
+            && !appState.helperStatus.needsUpdate
+    }
+
     private var bannerMessage: String {
+        if canRepair {
+            return "Helper 已安装，但尚未提供有效功耗样本。温度等本机读数仍可显示；可尝试修复 Helper。"
+        }
         if appState.helperStatus.needsUpdate {
-            return "当前 Helper 仍可提供 powermetrics 采样，但版本或二进制与本 App 内置 Helper 不一致。更新后可确保采样、传感器与修复逻辑来自同一构建。"
+            return "当前 Helper 的版本或二进制与本 App 不一致。更新后可确保后台采样与 App 来自同一构建。"
         }
         return "安装后可用 root powermetrics 读取功耗、频率与热压。温度、风扇与扩展传感器会优先使用 AppleSMC/HID 本地读取，所有数据只留在本机。"
     }
@@ -194,7 +204,7 @@ struct MonitorHeader: View {
                 .minimumScaleFactor(0.78)
             Text("MacCore Monitor · Stress & Power")
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(LabTextStyle.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.82)
         }
@@ -479,7 +489,7 @@ struct LivePowerChart: View {
             rows: rows,
             emptyTitle: "等待可用功耗样本",
             emptySystemImage: "bolt.badge.clock",
-            emptyDescription: "没有 root 权限时，powermetrics 功耗曲线会降级为空；压力测试仍可运行。"
+            emptyDescription: "暂未取得有效功耗样本。请查看 Helper 状态；温度与风扇仍显示可读取的数据。"
         )
     }
 }
@@ -602,12 +612,34 @@ struct FanRPMChart: View {
 
 struct RealtimeChartsGrid: View, Equatable {
     var samples: [TelemetrySample]
+    @State private var hasTwoColumns = true
 
     static func == (lhs: RealtimeChartsGrid, rhs: RealtimeChartsGrid) -> Bool {
         lhs.chartUpdateToken == rhs.chartUpdateToken
     }
 
     var body: some View {
+        if LabAppearanceProfile.usesStableSurfaces {
+            // Measure the available width once, rather than asking two complete
+            // sets of live charts for their ideal sizes on every update.
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14),
+                                    count: hasTwoColumns ? 2 : 1), spacing: 14) {
+                LivePowerChart(samples: samples)
+                LiveTemperatureChart(samples: samples)
+                LiveFrequencyChart(samples: samples)
+                LiveActivityChart(samples: samples)
+                ModuleTemperatureChart(samples: samples)
+                FanRPMChart(samples: samples)
+            }
+            .onGeometryChange(for: Bool.self) { $0.size.width >= 654 } action: {
+                hasTwoColumns = $0
+            }
+        } else {
+            legacyGrid
+        }
+    }
+
+    private var legacyGrid: some View {
         ViewThatFits(in: .horizontal) {
             LazyVGrid(columns: [
                 GridItem(.flexible(minimum: 320), spacing: 14),
@@ -713,7 +745,24 @@ struct TelemetryLineChartCard: View {
         }
     }
 
+    @ViewBuilder
     private var lineChart: some View {
+        if LabAppearanceProfile.usesStableSurfaces {
+            Chart {
+                LinePlot(rows,
+                         x: .value("时间", \.date),
+                         y: .value(unit, \.value),
+                         series: .value("曲线段", \.seriesIdentifier))
+                    .foregroundStyle(by: .value("指标", \.metric))
+                    .interpolationMethod(.linear)
+                    .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            }
+        } else {
+            legacyLineChart
+        }
+    }
+
+    private var legacyLineChart: some View {
         Chart(rows) { row in
             LineMark(
                 x: .value("时间", row.date),
@@ -819,8 +868,9 @@ enum TelemetryChartRows {
     ) -> [TelemetryLineRow] {
         let selectedSamples = sampleLimit.map { Array(samples.suffix($0)) } ?? samples
         let reportedFanCount = selectedSamples.compactMap { $0.fanRPMs?.count }.max() ?? 0
-        let fanCount = max(1, min(4, reportedFanCount))
-        let inferredSingleFan = reportedFanCount == 0
+        guard reportedFanCount > 0 else { return [] }
+        let fanCount = min(4, reportedFanCount)
+        let inferredSingleFan = reportedFanCount == 1
         let definitions = (0..<fanCount).map { index in
             MetricDefinition(
                 name: fanName(index, inferredSingleFan: inferredSingleFan),
@@ -828,7 +878,7 @@ enum TelemetryChartRows {
                     if let rpms = sample.fanRPMs, rpms.indices.contains(index) {
                         return rpms[index]
                     }
-                    return inferredSingleFan && index == 0 ? 0 : nil
+                    return nil
                 }
             )
         }
@@ -841,7 +891,14 @@ enum TelemetryChartRows {
         knownGaps: [TelemetrySamplingGap]? = nil,
         sampleLimit: Int? = 360
     ) -> [TelemetryLineRow] {
-        let recent = sampleLimit.map { Array(samples.suffix($0)) } ?? samples
+        let selected = sampleLimit.map { Array(samples.suffix($0)) } ?? samples
+        // Helper snapshots can arrive after newer local fallback samples. Charts connects
+        // points in input order, so order the display rows before detecting missing spans.
+        // Preserve equal-time readings and raw samples; never fabricate timestamps or values.
+        let recent = selected.enumerated().sorted { lhs, rhs in
+            if lhs.element.capturedAt == rhs.element.capturedAt { return lhs.offset < rhs.offset }
+            return lhs.element.capturedAt < rhs.element.capturedAt
+        }.map(\.element)
         let inferredGapThreshold = knownGaps == nil
             ? TelemetryCurveCompressor.timingSummary(samples: recent).trustedGapThresholdSeconds
             : nil
@@ -895,7 +952,10 @@ enum TelemetryChartRows {
 }
 
 enum TelemetryCurveLogExporter {
+    @MainActor
     static func export(samples: [TelemetrySample]) {
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
+        defer { UpdateActivityGate.shared.endActivity(updateToken) }
         let panel = NSSavePanel()
         panel.title = "导出曲线 Log"
         panel.nameFieldStringValue = TelemetryCSVExporter.suggestedFilename(

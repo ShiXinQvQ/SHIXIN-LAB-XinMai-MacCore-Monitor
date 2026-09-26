@@ -29,7 +29,10 @@ jobs:
           persist-credentials: false
 
       - name: Show Swift toolchain
-        run: swift --version
+        run: |
+          sw_vers
+          swift --version
+          xcrun --sdk macosx --show-sdk-version
 
       - name: Audit public source
         run: Scripts/audit-public-source.sh
@@ -50,8 +53,13 @@ jobs:
 
       - name: Build app and Helper
         run: |
-          swift build -c release --product ShixinStressPower
-          swift build -c release --product ShixinStressPowerHelper
+          bash Scripts/swift-build.sh build -c release --product ShixinStressPower
+          bash Scripts/swift-build.sh build -c release --product ShixinStressPowerHelper
 
       - name: Run non-stress self-test
-        run: swift run -c release ShixinStressPowerSelfTest --core-only
+        run: |
+          bash Scripts/swift-build.sh build -c release --product ShixinStressPowerSelfTest
+          "$(swift build -c release --show-bin-path)/ShixinStressPowerSelfTest" --core-only
+
+      - name: Run update and chart regression tests
+        run: bash Scripts/swift-build.sh test -c release

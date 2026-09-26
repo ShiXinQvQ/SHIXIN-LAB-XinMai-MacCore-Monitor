@@ -166,10 +166,10 @@ public final class HistoryStore {
             if source.resolvingSymlinksInPath().standardizedFileURL == destination.resolvingSymlinksInPath().standardizedFileURL {
                 return .fullSamples
             }
-            if fileManager.fileExists(atPath: destination.path) {
-                try fileManager.removeItem(at: destination)
-            }
-            try fileManager.copyItem(at: source, to: destination)
+            // Read first, then atomically replace. Removing the old export before
+            // a failing read/copy could destroy the user's existing destination.
+            let data = try Data(contentsOf: source, options: [.mappedIfSafe])
+            try data.write(to: destination, options: [.atomic])
             return .fullSamples
         } else {
             try TelemetryCSVExporter.write(samples: session.samples, to: destination)
@@ -249,7 +249,8 @@ public final class HistoryStore {
 
     private func pruneHistoryBackups() {
         for url in historyBackupURLs().dropFirst(maximumHistoryBackups) {
-            try? fileManager.removeItem(at: url)
+            // Rotation remains recoverable; if Trash is unavailable, retain the backup.
+            try? fileManager.trashItem(at: url, resultingItemURL: nil)
         }
     }
 

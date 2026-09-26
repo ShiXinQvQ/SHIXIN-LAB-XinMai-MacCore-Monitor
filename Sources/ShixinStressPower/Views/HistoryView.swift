@@ -652,16 +652,21 @@ struct PerformanceThermalReportCard: View {
     }
 
     private func exportShareImage() {
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         let panel = NSSavePanel()
         panel.title = L10n.t("导出分享图")
         panel.nameFieldStringValue = ShareReportExporter.suggestedFilename(for: session)
         panel.allowedContentTypes = [.png]
         panel.canCreateDirectories = true
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runModal() == .OK, let url = panel.url else {
+            UpdateActivityGate.shared.endActivity(updateToken)
+            return
+        }
 
         isExportingShareImage = true
         shareMessage = L10n.t("正在导出分享图...")
         Task { @MainActor in
+            defer { UpdateActivityGate.shared.endActivity(updateToken) }
             do {
                 let savedURL = try ShareReportExporter.export(session: session, hardwareProfile: appState.hardwareProfile, to: url)
                 shareMessage = "\(L10n.t("分享图已导出"))：\(savedURL.path)"
@@ -807,6 +812,8 @@ struct SessionSampleArchiveCard: View {
     }
 
     private func exportFullCSV() {
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
+        defer { UpdateActivityGate.shared.endActivity(updateToken) }
         let panel = NSSavePanel()
         panel.title = L10n.t("导出完整 CSV")
         panel.nameFieldStringValue = TelemetryCSVExporter.suggestedFilename(

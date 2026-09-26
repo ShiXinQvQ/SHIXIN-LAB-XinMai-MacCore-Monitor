@@ -31,11 +31,12 @@ final class AppState: ObservableObject {
     private var telemetryTask: Task<Void, Never>?
     private var safetyWatchdogTask: Task<Void, Never>?
     private var finishTask: Task<Void, Never>?
+    private var updateActivityToken: UUID?
     private var seriousThermalBeganUptime: TimeInterval?
     private var lastTelemetryArrivalUptime: TimeInterval?
     private var lastTrustedTelemetryUptime: TimeInterval?
     private var stressStartedUptime: TimeInterval?
-    private var lastHelperSampleSequence: UInt64?
+    private var sampleGate = TelemetrySampleGate()
     private var telemetryProtectionArmed = false
     private var latestSample: TelemetrySample?
     private var bufferedSamples: [TelemetrySample] = []
@@ -107,7 +108,7 @@ final class AppState: ObservableObject {
     }
 
     func requestStartStress() {
-        guard !isRunning else { return }
+        guard !isRunning, UpdateActivityGate.shared.allowsUserActivity() else { return }
         pendingStressConfirmation = true
     }
 
@@ -125,7 +126,9 @@ final class AppState: ObservableObject {
     }
 
     func startStress() {
-        guard !isRunning else { return }
+        guard !isRunning, updateActivityToken == nil,
+              let token = UpdateActivityGate.shared.beginUserActivity() else { return }
+        updateActivityToken = token
         lastError = nil
         completedReportSessionID = nil
         phase = .starting
@@ -162,7 +165,15 @@ final class AppState: ObservableObject {
                 telemetryProtectionArmed = false
                 stressStartedUptime = nil
                 await stressController.stop()
+                releaseUpdateActivity()
             }
+        }
+    }
+
+    private func releaseUpdateActivity() {
+        if let token = updateActivityToken {
+            UpdateActivityGate.shared.endActivity(token)
+            updateActivityToken = nil
         }
     }
 
@@ -240,6 +251,7 @@ final class AppState: ObservableObject {
     }
 
     func installHelper(fromOnboarding: Bool = false) {
+        guard !helperActionInProgress, let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         helperActionInProgress = true
         helperActionMessage = "正在请求管理员权限安装 Helper..."
         if fromOnboarding {
@@ -248,6 +260,7 @@ final class AppState: ObservableObject {
         Task.detached {
             let result = Result { try HelperInstallManager.install() }
             await MainActor.run {
+                defer { UpdateActivityGate.shared.endActivity(updateToken) }
                 switch result {
                 case .success:
                     self.helperActionMessage = "Helper 安装完成。"
@@ -266,11 +279,13 @@ final class AppState: ObservableObject {
     }
 
     func uninstallHelper() {
+        guard !helperActionInProgress, let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         helperActionInProgress = true
         helperActionMessage = "正在请求管理员权限卸载 Helper..."
         Task.detached {
             let result = Result { try HelperInstallManager.uninstall() }
             await MainActor.run {
+                defer { UpdateActivityGate.shared.endActivity(updateToken) }
                 switch result {
                 case .success:
                     self.helperActionMessage = "Helper 已卸载。"
@@ -285,11 +300,13 @@ final class AppState: ObservableObject {
     }
 
     func repairHelper() {
+        guard !helperActionInProgress, let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         helperActionInProgress = true
         helperActionMessage = "正在检查并修复 Helper..."
         Task.detached {
             let result = Result { try HelperInstallManager.repair() }
             await MainActor.run {
+                defer { UpdateActivityGate.shared.endActivity(updateToken) }
                 switch result {
                 case .success(let message):
                     self.helperActionMessage = message
@@ -327,11 +344,23 @@ final class AppState: ObservableObject {
 
     private func telemetryLoop() async {
         while !Task.isCancelled {
+            let pollStarted = systemUptime
             let sample = await sampler.sample()
-            if shouldIngest(sample) {
+            guard !Task.isCancelled else { return }
+            updateHelperSamplingStatus(from: sample)
+            if let age = sample.helperSampleAgeSeconds, age > 2,
+               let message = sample.message, permissionMessage != message {
+                permissionMessage = message
+            }
+            if sampleGate.accept(sample) {
                 ingest(sample)
             }
-            try? await Task.sleep(nanoseconds: 250_000_000)
+            // On 27, include read time in the 500 ms cadence; otherwise a slow
+            // read silently lowers sampling frequency. Do not issue catch-up bursts.
+            // Older systems retain their original polling schedule.
+            let delay = LabAppearanceProfile.usesStableSurfaces
+                ? max(0.05, 0.5 - (systemUptime - pollStarted)) : 0.25
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         }
     }
 
@@ -351,18 +380,10 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func shouldIngest(_ sample: TelemetrySample) -> Bool {
-        guard let sequence = sample.helperSampleSequence else { return true }
-        guard sequence != lastHelperSampleSequence else { return false }
-        lastHelperSampleSequence = sequence
-        return true
-    }
-
     private func ingest(_ sample: TelemetrySample) {
         let now = systemUptime
         lastTelemetryArrivalUptime = now
         latestSample = sample
-        updateHelperSamplingStatus(from: sample)
         bufferedSamples.append(sample)
         if bufferedSamples.count > liveSampleLimit {
             bufferedSamples.removeFirst(bufferedSamples.count - liveSampleLimit)
@@ -444,6 +465,7 @@ final class AppState: ObservableObject {
     private func finishStress(reason: StopReason) async {
         defer {
             finishTask = nil
+            releaseUpdateActivity()
         }
         await stressController.stop()
         seriousThermalBeganUptime = nil
@@ -502,27 +524,8 @@ final class AppState: ObservableObject {
     }
 
     private func updateHelperSamplingStatus(from sample: TelemetrySample) {
-        guard let sequence = sample.helperSampleSequence else { return }
         var updated = helperStatus
-        let nextState: String?
-        if let age = sample.helperSampleAgeSeconds {
-            nextState = age <= 2 ? "ready" : "restarting"
-        } else if sequence == 0 {
-            nextState = "starting"
-        } else {
-            nextState = nil
-        }
-        guard let nextState else { return }
-        if nextState == helperStatus.samplingState {
-            if nextState == "ready" { return }
-            if let age = sample.helperSampleAgeSeconds,
-               let previousAge = helperStatus.sampleAgeSeconds,
-               Int(age) == Int(previousAge) {
-                return
-            }
-        }
-        updated.sampleAgeSeconds = sample.helperSampleAgeSeconds
-        updated.samplingState = nextState
+        updated.observe(sample)
         if updated != helperStatus {
             helperStatus = updated
         }

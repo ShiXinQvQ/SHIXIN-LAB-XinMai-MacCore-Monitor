@@ -79,6 +79,7 @@ final class NetworkSpeedTestController: ObservableObject {
 
     func startTest() {
         guard !phase.isRunning, runTask == nil else { return }
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
 
         progressTask?.cancel()
         processRunner.resetCancellation()
@@ -101,6 +102,7 @@ final class NetworkSpeedTestController: ObservableObject {
         startProgressClock(startedAt: startedAt)
 
         runTask = Task { [weak self] in
+            defer { UpdateActivityGate.shared.endActivity(updateToken) }
             guard let self else { return }
             do {
                 let probe = try await latencyProbe.measure()

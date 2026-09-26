@@ -17,6 +17,16 @@ public actor TelemetrySampler {
         if preferHelper {
             do {
                 var sample = try HelperSocketClient.sample()
+                // A connected Helper may still be serving an expired idle cache.
+                // Use the existing local read-only path instead of presenting old
+                // power/frequency values or withholding fresh local temperatures.
+                if let age = sample.helperSampleAgeSeconds, age > 2 {
+                    // Keep the user-facing failure stable. Embedding the cache age
+                    // here republishes AppState every poll even on non-live pages.
+                    throw HelperSocketError.helperReturnedError(
+                        "Helper 采样已过期，等待后台采样恢复。"
+                    )
+                }
                 applyKernelCPUActivity(to: &sample)
                 return sample
             } catch {
@@ -171,6 +181,10 @@ public actor TelemetrySampler {
     }
 
     private func applyKernelCPUActivity(to sample: inout TelemetrySample) {
+        // powermetrics CPU residency and whole-machine kernel CPU utilisation
+        // are different quantities. Missing ticks must not leak the former
+        // (often 100%) into the latter's chart.
+        sample.cpuActivePercent = nil
         guard let current = CPUActivityReader.readSnapshot() else { return }
         defer { lastCPUActivitySnapshot = current }
         guard let previous = lastCPUActivitySnapshot,
@@ -197,6 +211,9 @@ public struct CPUActivitySnapshot: Equatable {
 
 public enum CPUActivityReader {
     public static func readSnapshot() -> CPUActivitySnapshot? {
+        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 27 {
+            return readProcessorSnapshot()
+        }
         var info = host_cpu_load_info_data_t()
         var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info_data_t>.stride / MemoryLayout<integer_t>.stride)
         let result = withUnsafeMutablePointer(to: &info) { pointer in
@@ -212,6 +229,33 @@ public enum CPUActivityReader {
             idle: UInt64(info.cpu_ticks.2),
             nice: UInt64(info.cpu_ticks.3)
         )
+    }
+
+    private static func readProcessorSnapshot() -> CPUActivitySnapshot? {
+        // On macOS 27 host_statistics64 repeats cached aggregate counters across
+        // several 250 ms polls. Per-processor counters retain the same metric
+        // while advancing at our sampling cadence. Release the Mach allocation.
+        var count: mach_msg_type_number_t = 0
+        var cpuCount: natural_t = 0
+        var info: processor_info_array_t?
+        guard host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO,
+                                  &cpuCount, &info, &count) == KERN_SUCCESS,
+              let info else { return nil }
+        defer {
+            vm_deallocate(mach_task_self_, vm_address_t(UInt(bitPattern: info)),
+                          vm_size_t(count) * vm_size_t(MemoryLayout<integer_t>.stride))
+        }
+        guard count >= cpuCount * natural_t(CPU_STATE_MAX) else { return nil }
+        var ticks = [UInt64](repeating: 0, count: Int(CPU_STATE_MAX))
+        for cpu in 0..<Int(cpuCount) {
+            for state in 0..<Int(CPU_STATE_MAX) {
+                ticks[state] += UInt64(UInt32(bitPattern: info[cpu * Int(CPU_STATE_MAX) + state]))
+            }
+        }
+        return CPUActivitySnapshot(user: ticks[Int(CPU_STATE_USER)],
+                                   system: ticks[Int(CPU_STATE_SYSTEM)],
+                                   idle: ticks[Int(CPU_STATE_IDLE)],
+                                   nice: ticks[Int(CPU_STATE_NICE)])
     }
 
     public static func activePercent(from previous: CPUActivitySnapshot, to current: CPUActivitySnapshot) -> Double? {

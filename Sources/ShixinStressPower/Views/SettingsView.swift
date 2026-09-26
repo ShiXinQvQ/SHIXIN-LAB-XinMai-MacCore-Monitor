@@ -17,6 +17,7 @@ struct SettingsView: View {
                 LanguageSettingsCard()
                 PermissionCard()
                 StorageCard()
+                UpdateSettingsCard()
                 AboutCard()
             }
             .padding(22)
@@ -387,6 +388,14 @@ struct AboutCard: View {
     @State private var isGeneratingDiagnosticReport = false
     @State private var diagnosticMessage: String?
 
+    private var runningVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    private var runningBuild: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionHeader(title: "关于", systemImage: "info.circle")
@@ -412,7 +421,7 @@ struct AboutCard: View {
             KeyValueRow(title: "Bundle ID", value: bundleIdentifier, monospaced: true)
             KeyValueRow(
                 title: "产品版本",
-                value: "\(ReleaseConstants.appVersion) · \(L10n.t("构建")) \(ReleaseConstants.appBuild)"
+                value: "\(runningVersion) · \(L10n.t("构建")) \(runningBuild)"
             )
             KeyValueRow(title: "Helper", value: HelperConstants.helperVersion)
             KeyValueRow(title: "系统要求", value: L10n.t("macOS 15 或更高版本 · Apple Silicon"))
@@ -485,7 +494,7 @@ struct AboutCard: View {
     private func copyVersionInformation() {
         let text = """
         SHIXIN LAB · 「芯脉」 MacCore Monitor
-        \(L10n.t("产品版本")): \(ReleaseConstants.appVersion) · \(L10n.t("构建")) \(ReleaseConstants.appBuild)
+        \(L10n.t("产品版本")): \(runningVersion) · \(L10n.t("构建")) \(runningBuild)
         Helper: \(HelperConstants.helperVersion)
         Bundle ID: \(bundleIdentifier)
         \(L10n.t("系统要求")): \(L10n.t("macOS 15 或更高版本 · Apple Silicon"))
@@ -507,6 +516,7 @@ struct AboutCard: View {
     }
 
     private func generateDiagnosticReport() {
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         let panel = NSSavePanel()
         panel.title = L10n.t("导出诊断报告")
         panel.nameFieldStringValue = DiagnosticReportExporter.suggestedFilename()
@@ -515,12 +525,16 @@ struct AboutCard: View {
         }
         panel.canCreateDirectories = true
 
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runModal() == .OK, let url = panel.url else {
+            UpdateActivityGate.shared.endActivity(updateToken)
+            return
+        }
 
         isGeneratingDiagnosticReport = true
         diagnosticMessage = L10n.t("正在生成诊断报告...")
 
         Task { @MainActor in
+            defer { UpdateActivityGate.shared.endActivity(updateToken) }
             do {
                 let savedURL = try DiagnosticReportExporter.export(appState: appState, to: url)
                 diagnosticMessage = "\(L10n.t("诊断报告已保存"))：\(savedURL.path)"

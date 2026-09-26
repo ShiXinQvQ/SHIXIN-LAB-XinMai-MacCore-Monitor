@@ -1,6 +1,6 @@
 # SHIXIN LAB · 「芯脉」
 ## 安装与使用说明 | Installation & Usage Guide
-版本 0.3.0-beta · 构建 300 · Apple Silicon Mac · macOS 15+
+版本 0.3.1-beta · 构建 301 · Apple Silicon Mac · macOS 15+
 
 ---
 
@@ -14,11 +14,11 @@ SHIXIN LAB · 「芯脉」 MacCore Monitor 是面向 Apple Silicon Mac 的原生
 
 ## 发行包内容
 
-- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.0-beta，构建 300。
+- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.1-beta，构建 301。
 - **Applications**：将 App 拖入此快捷方式即可安装到“应用程序”。
 - **安装与使用说明**：本双语文档。
 - **版权、开源许可与第三方声明**：GPL-3.0-or-later、版权、品牌资产、商标与责任边界。
-- **Licenses**：芯脉 GPLv3 正文、SHIXIN LAB 品牌资产声明，以及 smartmontools / smartctl 的第三方声明与完整 GPL 文本；如本构建内置 smartctl，还会包含版本记录和对应源码归档。
+- **Licenses**：芯脉 GPLv3 正文、SHIXIN LAB 品牌资产声明，以及 Sparkle 许可证、smartmontools / smartctl 的第三方声明与完整 GPL 文本；如本构建内置 smartctl，还会包含版本记录和对应源码归档。
 - **Release Manifest**：版本、Helper、源码提交、架构与生成时间。
 
 SHA-256 校验文件与 DMG 一同发布，不在 DMG 内。请始终把两者作为同一发行版本保存和核对。
@@ -77,6 +77,16 @@ Helper 组件位置：
 
 诊断报告用于排错，可能包含系统版本、Mac 型号、Helper 状态和经过处理的本机环境信息。提交公开 Issue 前仍建议先检查文件内容，不要公开个人路径、设备标识或其他不希望披露的信息。
 
+<!-- PAGEBREAK -->
+
+## 应用内更新
+
+0.3.0 不具备应用内更新，需要先从官网手动安装一次支持更新的新版本。配置正式更新源的版本可在“设置关于 > 软件更新”查看当前版本、更新源版本与上次检查时间，点击“检查更新”后按 Sparkle 窗口下载、安装并重启。
+
+默认只手动检查；开启“自动检查更新”后约每日检查一次，仍由你决定下载和安装。更新请求会让托管服务器看到公网 IP 与必要请求信息，不上传硬件读数、设备标识或测试历史，也不启用 Sparkle 系统画像。
+
+清单与安装包都必须通过签名验证；验证失败会报错，不会冒充“已是最新”。测试、导出或 Helper 操作完成后才可更新；更新过程中先完成或取消更新，再开始这些任务。App 更新不会静默更换系统 Helper，差异会在高级权限页单独提示。历史与 CSV 保留在原数据目录。未配置正式公钥的本地构建会明确提示更新不可用。
+
 ## 更新、卸载与支持
 
 更新时退出旧版 App，将新版拖入“Applications”并替换即可；已有本机历史不会因替换 App 自动删除。若“设置关于”提示 Helper 版本不一致，请同步更新 Helper。
@@ -100,11 +110,11 @@ Power, frequency, and thermal state are primarily provided by macOS powermetrics
 
 ## What Is Included
 
-- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.0-beta, build 300.
+- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.1-beta, build 301.
 - **Applications**: drag the app onto this shortcut to install it in Applications.
 - **Installation & Usage Guide**: this bilingual document.
 - **Copyright, Open Source License & Third-Party Notices**: GPL-3.0-or-later, copyright, protected brand assets, trademarks, and responsibility terms.
-- **Licenses**: the XinMai GPLv3 text, SHIXIN LAB brand-asset notice, and smartmontools / smartctl notices and GPL text. If this build bundles smartctl, it also includes the version record and corresponding source archive.
+- **Licenses**: the XinMai GPLv3 text, SHIXIN LAB brand-asset notice, the Sparkle license, and smartmontools / smartctl notices and GPL text. If this build bundles smartctl, it also includes the version record and corresponding source archive.
 - **Release Manifest**: product, Helper, source commit, architecture, and generation details.
 
 The SHA-256 checksum file is published beside the DMG, not inside it. Keep and verify both files as one release set.
@@ -166,6 +176,14 @@ The directory retains an earlier internal name to preserve compatibility with ex
 The standard speed test transfers real download and upload traffic. International diagnostics connect to test targets. On-demand IP analysis queries ipify, ipwho.is, and proxycheck.io for the current public egress and reputation signals. These requests occur only after the user starts the relevant feature.
 
 A diagnostic report can contain the macOS version, Mac model, Helper state, and processed local-environment details. Review it before posting to a public issue, and remove personal paths, device identifiers, or anything else you do not intend to disclose.
+
+## In-App Updates
+
+Version 0.3.0 has no updater. Install an update-enabled version manually once from the website. Configured releases show the running version, feed version, and last check under Settings & About > Software Update. Choose Check for Updates, then follow Sparkle to download, install, and relaunch.
+
+Checks are manual by default. Opting into automatic checks schedules roughly daily checks; downloading and installing remain your choice. The hosting server sees your public IP and necessary request information. Hardware readings, device identifiers, and test history are not uploaded, and Sparkle system profiling is disabled.
+
+Both the feed and archive require valid signatures. Validation failures are reported, never presented as “up to date.” Finish tests, exports, and Helper operations before updating; finish or cancel the update before starting those tasks. App updates do not silently replace the system Helper: differences are reported separately under Advanced Permissions. History and CSV files remain in the existing data directory. Local builds without a production public key explicitly report that updates are unavailable.
 
 ## Update, Uninstall, and Support
 

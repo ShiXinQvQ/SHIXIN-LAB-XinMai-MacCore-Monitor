@@ -1,6 +1,6 @@
 # SHIXIN LAB · 「芯脉」
 ## 版权、开源许可与第三方声明 | Copyright, Open Source License & Third-Party Notices
-版本 0.3.0-beta · 构建 300 · 2026
+版本 0.3.1-beta · 构建 301 · 2026
 
 ---
 
@@ -8,7 +8,7 @@
 
 ## 产品身份与版权
 
-Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.0-beta，构建号 300。
+Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.1-beta，构建号 301。
 
 SHIXIN LAB 自有程序源码的著作权仍归 SHIXIN LAB / Shixin 所有，并按 GPL-3.0-or-later 授权。产品名称、品牌视觉、最终 v3 图标、Logo、截图、宣传视觉、中英文文档及其他 SHIXIN LAB 原创品牌资产不因源码开源而失去著作权保护。
 
@@ -27,6 +27,12 @@ GPL 允许在遵守其条件的前提下使用、研究、修改与再分发程�
 GPL 对程序源码的授权不包含商标、品牌身份、宣传或官方背书授权。未经 SHIXIN LAB 事先书面许可，不得使用 SHIXIN LAB、「芯脉」、XinMai、MacCore Monitor 等产品标识，或最终 v3 图标、Logo、截图、宣传视觉及其他受保护品牌资产，把修改版或第三方构建包装成官方版本。
 
 公开再分发的 Fork 应使用不同的产品名称并替换上述受保护资产，同时清楚标明其经过修改且并非官方版本。仓库根目录 `NOTICE.md` 是代码许可范围、品牌资产边界与贡献规则的明确说明；第三方组件继续适用各自许可证。
+
+## Sparkle 应用内更新
+
+App 嵌入 Sparkle 2.10.0，由 Sparkle Project 维护，主体采用 MIT 许可证；上游附带的组件声明按原文保留。完整声明在 App 与 DMG 的 `Sparkle-LICENSE.txt`，项目地址 https://github.com/sparkle-project/Sparkle 。
+
+应用与更新签名是不同机制：本构建保持 ad-hoc 签名；正式更新另用 Ed25519 验证清单与安装包，不代表 Apple Developer ID、公证或 Apple 认证。默认手动检查，可主动开启定期检查。更新服务器能看到公网 IP 和必要请求信息；不上传硬件读数或历史。
 
 ## smartmontools / smartctl
 
@@ -68,7 +74,7 @@ App 不会在后台上传硬件历史或个人内容；用户主动开始网速�
 
 ## Product Identity and Copyright
 
-Copyright © 2026 SHIXIN LAB / Shixin. SHIXIN LAB · 「芯脉」 MacCore Monitor is designed, developed, and maintained by Shixin. This distribution contains version 0.3.0-beta, build 300.
+Copyright © 2026 SHIXIN LAB / Shixin. SHIXIN LAB · 「芯脉」 MacCore Monitor is designed, developed, and maintained by Shixin. This distribution contains version 0.3.1-beta, build 301.
 
 Copyright in SHIXIN LAB-owned program source remains with SHIXIN LAB / Shixin and is licensed under GPL-3.0-or-later. The product name, brand visuals, final v3 icon, logos, screenshots, promotional artwork, bilingual documentation, and other original SHIXIN LAB brand assets remain protected by copyright even though the source code is open source.
 
@@ -87,6 +93,14 @@ The GPL permits use, study, modification, and redistribution under its condition
 The GPL source-code grant does not include a trademark, brand-identity, publicity, or endorsement license. Without prior written permission from SHIXIN LAB, SHIXIN LAB, XinMai, MacCore Monitor, the final v3 icon, logos, screenshots, promotional artwork, and other protected brand assets may not be used to present a modified or third-party build as an official release.
 
 A publicly redistributed fork should use a distinct product name, replace the protected assets above, and clearly identify itself as modified and unofficial. The root `NOTICE.md` defines the code-license scope, brand-asset boundary, and contribution terms. Third-party components remain governed by their own licenses.
+
+## Sparkle In-App Updates
+
+The app embeds Sparkle 2.10.0, maintained by the Sparkle Project. Its main license is MIT; bundled upstream component notices are retained verbatim. See `Sparkle-LICENSE.txt` in the app and DMG and https://github.com/sparkle-project/Sparkle .
+
+App signing and update verification are separate: this build remains ad-hoc signed, while production updates use Ed25519 to verify feeds and archives. This does not imply Apple Developer ID signing, notarization, or Apple certification. Checks are manual by default, with optional scheduled checks. The update server sees the public IP and necessary request information; hardware readings and history are not uploaded.
+
+<!-- PAGEBREAK -->
 
 ## smartmontools / smartctl
 

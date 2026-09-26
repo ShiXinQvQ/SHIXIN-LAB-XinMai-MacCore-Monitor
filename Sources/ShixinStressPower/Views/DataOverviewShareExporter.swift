@@ -22,6 +22,8 @@ struct DataOverviewShareExportButton: View {
 
     @MainActor
     private func exportShareImage() {
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
+        defer { UpdateActivityGate.shared.endActivity(updateToken) }
         guard let sample = appState.currentSample else { return }
         let samples = appState.liveSession?.samples ?? appState.liveSamples
         let snapshot = DataOverviewShareSnapshot(

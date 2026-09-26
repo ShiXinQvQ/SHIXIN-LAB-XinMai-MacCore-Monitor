@@ -36,8 +36,8 @@ struct ShixinStressPowerSelfTest {
               configuration.thermalSeriousGraceSeconds == 120 else {
             fatalError("default stress configuration is out of sync")
         }
-        guard ReleaseConstants.appVersion == "0.3.0-beta",
-              ReleaseConstants.appBuild == "300",
+        guard ReleaseConstants.appVersion == "0.3.1-beta",
+              ReleaseConstants.appBuild == "301",
               HelperConstants.helperVersion == "0.3.0-helper" else {
             fatalError("release version constants are out of sync")
         }
@@ -382,7 +382,7 @@ struct ShixinStressPowerSelfTest {
         let fileManager = FileManager.default
         let root = fileManager.temporaryDirectory
             .appendingPathComponent("shixin-network-history-selftest-\(UUID().uuidString)", isDirectory: true)
-        defer { try? fileManager.removeItem(at: root) }
+        defer { try? fileManager.trashItem(at: root, resultingItemURL: nil) }
         let store = NetworkSpeedHistoryStore(
             fileManager: fileManager,
             appSupportURL: root,
@@ -836,7 +836,7 @@ struct ShixinStressPowerSelfTest {
             "shixin-network-diagnostics-history-\(UUID().uuidString)",
             isDirectory: true
         )
-        defer { try? fileManager.removeItem(at: root) }
+        defer { try? fileManager.trashItem(at: root, resultingItemURL: nil) }
         let store = NetworkDiagnosticsHistoryStore(
             fileManager: fileManager,
             appSupportURL: root,
@@ -1275,8 +1275,8 @@ struct ShixinStressPowerSelfTest {
         let outsideURL = root.deletingLastPathComponent()
             .appendingPathComponent("shixin-history-outside-\(UUID().uuidString).csv")
         defer {
-            try? fileManager.removeItem(at: root)
-            try? fileManager.removeItem(at: outsideURL)
+            try? fileManager.trashItem(at: root, resultingItemURL: nil)
+            try? fileManager.trashItem(at: outsideURL, resultingItemURL: nil)
         }
         let store = HistoryStore(fileManager: fileManager, appSupportURL: root)
         var session = LiveSession(configuration: configuration)

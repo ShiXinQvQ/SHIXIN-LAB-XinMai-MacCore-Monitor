@@ -1087,3 +1087,39 @@
 "分别统计五个目标是否解析到 IPv4 与 IPv6；这是地址族覆盖，不等同于实际流量一定走双栈。" = "Checks whether the five targets resolve over IPv4 and IPv6. This is address-family coverage and does not prove that traffic used both stacks.";
 "当前来源未覆盖" = "Not Covered by Current Source";
 "查询公网出口及 IP 信誉时，网络信息查询服务会接收到当前公网 IP；不会上传本机硬件数据、历史文件或个人内容。" = "Network-information services receive the current public IP during an IP reputation query; hardware data, history files, and personal content are not uploaded.";
+
+// Software update
+"更新进行中" = "Update in progress";
+"请先完成或取消软件更新，再开始测试、导出或 Helper 操作。" = "Finish or cancel the software update before starting a test, export, or Helper operation.";
+"好" = "OK";
+"软件更新" = "Software Update";
+"尚未检查" = "Not checked yet";
+"此构建尚未配置正式更新源与签名，请使用已发布的安装包。" = "This build has no release update source and signing key. Use a published installer.";
+"检查更新…" = "Check for Updates…";
+"正在检查更新…" = "Checking for updates…";
+"发现可用更新，请在更新窗口中继续。" = "An update is available. Continue in the update window.";
+"当前已是最新可用版本。" = "You have the latest compatible version.";
+"本地构建比当前更新源中的版本更新，不会降级。" = "This build is newer than the update source. It will not be downgraded.";
+"更新源中的新版本不适用于当前系统或硬件。" = "The new version does not support this system or hardware.";
+"当前更新源未提供适用版本。" = "No compatible version is available from the update source.";
+"已取消更新。" = "Update cancelled.";
+"当前任务尚未结束，请在测试、导出或 Helper 操作完成后再更新。" = "Wait for the current test, export, or Helper operation to finish before updating.";
+"当前版本" = "Current version";
+"更新源版本" = "Latest source version";
+"上次检查" = "Last checked";
+"自动检查更新" = "Automatically check for updates";
+"未取得版本信息" = "Version information unavailable";
+"默认关闭。开启后约每日检查一次；下载和安装仍由你决定。检查会连接更新服务器，不上传硬件读数或测试历史。" = "Off by default. When enabled, checks about once a day; you decide when to download and install. Checks contact the update server without uploading hardware readings or test history.";
+"正在下载更新，请在更新窗口查看进度或取消。" = "Downloading the update. View progress or cancel in the update window.";
+"更新已准备好，请在更新窗口选择安装并重启。" = "The update is ready. Choose Install and Relaunch in the update window.";
+"正在安装更新并等待 App 退出。" = "Installing the update and waiting for the app to quit.";
+"更新清单无法解析或验证，请稍后重试。" = "The update feed could not be parsed or verified. Please try again later.";
+"更新包未通过真实性验证，已停止安装。" = "The update archive could not be authenticated. Installation was stopped.";
+
+"正在修复" = "Repairing";
+
+"Helper 已安装，但尚未提供有效功耗样本。温度等本机读数仍可显示；可尝试修复 Helper。" = "Helper is installed but has not provided valid power readings. Local readings such as temperature remain available; try repairing Helper.";
+
+"当前 Helper 的版本或二进制与本 App 不一致。更新后可确保后台采样与 App 来自同一构建。" = "The installed Helper version or binary differs from this app. Update Helper to use the matching build.";
+
+"暂未取得有效功耗样本。请查看 Helper 状态；温度与风扇仍显示可读取的数据。" = "No valid power samples yet. Check Helper status; available temperature and fan readings are still shown.";

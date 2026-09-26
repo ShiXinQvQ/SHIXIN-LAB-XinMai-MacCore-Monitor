@@ -25,6 +25,7 @@ EXPECTED_SOURCES = {
     "Packaging/PublicBetaDocs/COPYRIGHT_AND_LICENSES_BILINGUAL.md",
     "Packaging/PublicBetaDocs/INSTALLATION_GUIDE_BILINGUAL.md",
     "Packaging/THIRD-PARTY-NOTICES.txt",
+    "Packaging/Sparkle-LICENSE.txt",
     "Packaging/smartmontools-COPYING.txt",
     "Scripts/generate-public-beta-pdfs.py",
     "Scripts/requirements-public-beta-docs.txt",
