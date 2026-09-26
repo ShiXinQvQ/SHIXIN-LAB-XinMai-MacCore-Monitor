@@ -20,6 +20,9 @@ let package = Package(
         .executable(name: "ShixinStressPowerHelper", targets: ["ShixinStressPowerHelper"]),
         .executable(name: "ShixinStressPowerSelfTest", targets: ["ShixinStressPowerSelfTest"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0")
+    ],
     targets: [
         .target(
             name: "ShixinStressPowerHardwareBridge",
@@ -42,11 +45,15 @@ let package = Package(
             name: "ShixinStressPower",
             dependencies: [
                 "ShixinStressPowerCore",
-                "ShixinNetworkDiagnosticsCore"
+                "ShixinNetworkDiagnosticsCore",
+                .product(name: "Sparkle", package: "Sparkle")
             ],
             path: "Sources/ShixinStressPower",
             resources: [
                 .process("Resources")
+            ],
+            linkerSettings: [
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])
             ]
         ),
         .executableTarget(
@@ -61,6 +68,11 @@ let package = Package(
                 "ShixinNetworkDiagnosticsCore"
             ],
             path: "Sources/ShixinStressPowerSelfTest"
+        ),
+        .testTarget(
+            name: "ShixinStressPowerUpdateTests",
+            dependencies: ["ShixinStressPower"],
+            path: "Tests/ShixinStressPowerUpdateTests"
         )
     ],
     swiftLanguageModes: [.v5]

@@ -38,7 +38,7 @@ if git grep -I -n -E '/Users/[A-Za-z0-9._-]+/|BEGIN (RSA |EC |OPENSSH )?PRIVATE 
   fail "tracked source contains a machine path or credential-shaped value"
 fi
 
-if git grep -I -n -E '^(<<<<<<<|=======|>>>>>>>)' -- . >/dev/null; then
+if git grep -I -n -E '^(<<<<<<< |=======$|>>>>>>> )' -- . >/dev/null; then
   fail "merge-conflict markers remain in tracked text"
 fi
 

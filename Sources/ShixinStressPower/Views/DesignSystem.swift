@@ -254,10 +254,61 @@ enum L10n {
     ]
 }
 
+// Limit this compatibility profile to macOS 27; future systems need their own review.
+enum LabAppearanceProfile {
+    static let usesStableSurfaces = ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 27
+}
+
+/// One neutral charcoal for headers, metrics and charts, matching the reference card brightness.
+private struct LabStableSurface: View {
+    let cornerRadius: CGFloat
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color(red: 41 / 255, green: 43 / 255, blue: 46 / 255))
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(.white.opacity(contrast == .increased ? 0.4 : 0.10), lineWidth: 1)
+            }
+    }
+}
+
+/// Preserve the system's hierarchical styles on every system other than macOS 27.
+enum LabTextStyle: ShapeStyle {
+    case primary, secondary, tertiary
+
+    func resolve(in environment: EnvironmentValues) -> AnyShapeStyle {
+        guard LabAppearanceProfile.usesStableSurfaces else {
+            switch self {
+            case .primary: return AnyShapeStyle(HierarchicalShapeStyle.primary)
+            case .secondary: return AnyShapeStyle(HierarchicalShapeStyle.secondary)
+            case .tertiary: return AnyShapeStyle(HierarchicalShapeStyle.tertiary)
+            }
+        }
+        let increased = environment.colorSchemeContrast == .increased
+        switch self {
+        case .primary:
+            return AnyShapeStyle(Color(white: 0.95))
+        case .secondary:
+            return AnyShapeStyle(increased ? Color.white : Color(white: 0.73))
+        case .tertiary:
+            return AnyShapeStyle(increased
+                                 ? Color(white: 0.84)
+                                 : Color(white: 0.59))
+        }
+    }
+}
+
 extension View {
     @ViewBuilder
     func labGlassCard(padding: CGFloat = 18, cornerRadius: CGFloat = 18) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        if LabAppearanceProfile.usesStableSurfaces {
+            self
+                .padding(padding)
+                .background { LabStableSurface(cornerRadius: cornerRadius) }
+        } else {
         #if SHIXIN_LEGACY_SDK
         self
             .padding(padding)
@@ -285,6 +336,7 @@ extension View {
                 }
         }
         #endif
+        }
     }
 
     func labSettingsCard(padding: CGFloat = 18, cornerRadius: CGFloat = 18) -> some View {
@@ -323,7 +375,7 @@ struct SectionHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: systemImage)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(LabTextStyle.secondary)
             Text(L10n.t(title))
                 .font(.headline)
                 .lineLimit(1)
@@ -367,7 +419,7 @@ struct InfoHelpButton: View {
             isPresented = isPinned
         } label: {
             Image(systemName: "info.circle")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(LabTextStyle.secondary)
         }
         .buttonStyle(.plain)
         .help(L10n.t(title))
@@ -385,7 +437,7 @@ struct InfoHelpButton: View {
                     .font(.headline)
                 Text(L10n.t(message))
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LabTextStyle.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(14)
@@ -432,7 +484,7 @@ struct MetricTile: View {
             Text(L10n.t(value))
                 .font(.system(size: 28, weight: .semibold))
                 .monospacedDigit()
-                .foregroundStyle(.primary)
+                .foregroundStyle(LabTextStyle.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.62)
                 .contentTransition(.numericText())
@@ -442,7 +494,7 @@ struct MetricTile: View {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     Text(L10n.t(title))
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(LabTextStyle.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     if let effectiveHelp {
@@ -452,7 +504,7 @@ struct MetricTile: View {
                 if let detail {
                     Text(L10n.t(detail))
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(LabTextStyle.tertiary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
                         .truncationMode(.tail)
@@ -570,7 +622,7 @@ struct KeyValueRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Text(L10n.t(title))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LabTextStyle.secondary)
                     .lineLimit(2)
                 if let helpTitle, let help {
                     InfoHelpButton(title: helpTitle, message: help)

@@ -5,6 +5,15 @@ semantic-versioning compatibility during Beta.
 
 Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容。
 
+## 0.3.1-beta (Build 301) — 2026-09-25
+
+- macOS 27 only: stable dark card surfaces and readable secondary text; original appearance branches remain on other macOS releases.
+- Manual-default Sparkle 2.10.0 updates in Settings & About and the app menu, with optional scheduled checks and signed-feed/archive verification.
+- Updates and test/export/Helper operations cannot start over each other. Existing termination cleanup and separate Helper installation remain in place.
+- Bundle embedding, public-key configuration, source/PDF/license checks, and a 25 MiB hosting gate. The production public key is bundled; private signing material remains outside the source repository.
+- 修复曲线时间排序与过期采样复用，恢复默认窗口与侧栏布局；仅在27启用外观修正，保留其他系统原分支。
+- 0.3.0 用户需手动安装一次，此后可在设置中检查更新。旧系统视觉验收仍受限于缺少真机。
+
 ## 0.3.0-beta (Build 300) — 2026-08-18
 
 ### Added / 新增

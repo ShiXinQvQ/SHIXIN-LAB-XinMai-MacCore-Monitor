@@ -93,6 +93,7 @@ final class InternationalDiagnosticsController: ObservableObject {
 
     func start() {
         guard !phase.isRunning, runTask == nil else { return }
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
 
         let startedAt = Date()
         targetResults = []
@@ -106,6 +107,7 @@ final class InternationalDiagnosticsController: ObservableObject {
 
         let includeIPAnalysis = includesIPAnalysis
         runTask = Task { [weak self] in
+            defer { UpdateActivityGate.shared.endActivity(updateToken) }
             guard let self else { return }
             do {
                 try Task.checkCancellation()
@@ -1521,12 +1523,14 @@ final class NetworkDetailsController: ObservableObject {
 
     func queryPublicAndReputation() {
         guard publicTask == nil else { return }
+        guard let updateToken = UpdateActivityGate.shared.beginUserActivity() else { return }
         publicGeneration &+= 1
         let generation = publicGeneration
         let localGenerationAtStart = localGeneration
         phase = .queryingPublic
         errorMessage = nil
         publicTask = Task { [weak self] in
+            defer { UpdateActivityGate.shared.endActivity(updateToken) }
             guard let self else { return }
             if localSnapshot == nil {
                 let snapshot = await localReader.read()

@@ -8,12 +8,35 @@ import SwiftUI
 @main
 struct ShixinStressPowerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var appState = AppState()
+    @StateObject private var appState: AppState
+    @StateObject private var updateService: AppUpdateService
+
+    init() {
+        #if SHIXIN_UPDATE_TESTING
+        // Test-only build: fail before constructing any store unless relaunch preserved isolation.
+        guard let reviewHome = Bundle.main.object(forInfoDictionaryKey: "XinMaiReviewHome") as? String,
+              Bundle.main.bundleIdentifier?.hasSuffix(".review.updater") == true,
+              ProcessInfo.processInfo.environment["CFFIXED_USER_HOME"] == reviewHome,
+              NSHomeDirectory() == reviewHome else {
+            fatalError("Updater test build requires its isolated review home")
+        }
+        let receipt: [String: String] = [
+            "build": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown",
+            "home": NSHomeDirectory(), "bundle": Bundle.main.bundlePath
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: receipt, options: [.sortedKeys]) {
+            try? data.write(to: URL(fileURLWithPath: reviewHome).appendingPathComponent("launch-\(receipt["build"]!).json"))
+        }
+        #endif
+        _appState = StateObject(wrappedValue: AppState())
+        _updateService = StateObject(wrappedValue: AppUpdateService())
+    }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(appState)
+                .environmentObject(updateService)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 980, minHeight: 680)
                 .task {
@@ -30,6 +53,10 @@ struct ShixinStressPowerApp: App {
         .windowToolbarStyle(.unified)
         .defaultSize(width: 1180, height: 1000)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button(L10n.t("检查更新…")) { updateService.checkForUpdates() }
+                    .disabled(!updateService.canCheck)
+            }
             CommandGroup(after: .newItem) {
                 Button("开始 / 停止烤机") {
                     if appState.isRunning {

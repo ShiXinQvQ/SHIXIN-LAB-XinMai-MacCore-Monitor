@@ -29,22 +29,44 @@ APP_INSTALL_DIR="${SHIXIN_APP_INSTALL_DIR:-$HOME/Applications}"
 APP_DIR="$APP_INSTALL_DIR/${APP_NAME}.app"
 STAGING_ROOT="$(mktemp -d /private/tmp/shixin-maccore-build.XXXXXX)"
 STAGED_APP_DIR="$STAGING_ROOT/${APP_NAME}.app"
-SWIFT_BUILD_ARGS=(-c release)
+SWIFT_BUILD_ARGS=(-c release --jobs "${SHIXIN_BUILD_JOBS:-2}")
 if [ -n "${SHIXIN_SWIFT_SCRATCH_PATH:-}" ]; then
   SWIFT_BUILD_ARGS+=(--scratch-path "$SHIXIN_SWIFT_SCRATCH_PATH")
 fi
 
 cd "$ROOT_DIR"
-swift build "${SWIFT_BUILD_ARGS[@]}" --product "$PRODUCT_NAME"
-swift build "${SWIFT_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME"
+bash "$ROOT_DIR/Scripts/swift-build.sh" build "${SWIFT_BUILD_ARGS[@]}" --product "$PRODUCT_NAME"
+HELPER_BUILD_ARGS=(-c release --jobs "${SHIXIN_BUILD_JOBS:-2}")
+if [ -n "${SHIXIN_HELPER_SWIFT_SCRATCH_PATH:-${SHIXIN_SWIFT_SCRATCH_PATH:-}}" ]; then
+  HELPER_BUILD_ARGS+=(--scratch-path "${SHIXIN_HELPER_SWIFT_SCRATCH_PATH:-$SHIXIN_SWIFT_SCRATCH_PATH}")
+fi
+SHIXIN_BUILD_SDK_PATH="${SHIXIN_HELPER_BUILD_SDK_PATH:-${SHIXIN_BUILD_SDK_PATH:-}}" \
+  bash "$ROOT_DIR/Scripts/swift-build.sh" build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME"
 
 BIN_PATH="$(swift build "${SWIFT_BUILD_ARGS[@]}" --product "$PRODUCT_NAME" --show-bin-path)/$PRODUCT_NAME"
-HELPER_BIN_PATH="$(swift build "${SWIFT_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME" --show-bin-path)/$HELPER_PRODUCT_NAME"
+HELPER_BIN_PATH="$(swift build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME" --show-bin-path)/$HELPER_PRODUCT_NAME"
 
 mkdir -p "$STAGED_APP_DIR/Contents/MacOS" "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools" "$STAGED_APP_DIR/Contents/Resources/Tools" "$STAGED_APP_DIR/Contents/Resources/Licenses"
 cp "$BIN_PATH" "$STAGED_APP_DIR/Contents/MacOS/$PRODUCT_NAME"
 cp "$HELPER_BIN_PATH" "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL"
 cp "$ROOT_DIR/Packaging/Info.plist" "$STAGED_APP_DIR/Contents/Info.plist"
+SHIXIN_UPDATE_PUBLIC_KEY_FILE="${SHIXIN_UPDATE_PUBLIC_KEY_FILE:-$ROOT_DIR/Packaging/Sparkle-public-key.txt}"
+if [ -f "$SHIXIN_UPDATE_PUBLIC_KEY_FILE" ]; then
+  python3 - "$SHIXIN_UPDATE_PUBLIC_KEY_FILE" "$STAGED_APP_DIR/Contents/Info.plist" <<'PY'
+import base64, plistlib, sys
+from pathlib import Path
+key = Path(sys.argv[1]).read_text().strip()
+if len(base64.b64decode(key, validate=True)) != 32:
+    raise SystemExit("Update public key must be a base64-encoded 32-byte Ed25519 key")
+path = Path(sys.argv[2])
+info = plistlib.loads(path.read_bytes())
+info["SUPublicEDKey"] = key
+path.write_bytes(plistlib.dumps(info))
+PY
+fi
+python3 "$ROOT_DIR/Scripts/embed-sparkle.py" \
+  --scratch "${SHIXIN_SWIFT_SCRATCH_PATH:-$ROOT_DIR/.build}" --app "$STAGED_APP_DIR"
+cp "$ROOT_DIR/Packaging/THIRD-PARTY-NOTICES.txt" "$STAGED_APP_DIR/Contents/Resources/Licenses/THIRD-PARTY-NOTICES.txt"
 if [ -d "$ROOT_DIR/Sources/ShixinStressPower/Resources" ]; then
   find "$ROOT_DIR/Sources/ShixinStressPower/Resources" -maxdepth 1 -name "*.lproj" -type d -exec cp -R {} "$STAGED_APP_DIR/Contents/Resources/" \;
 fi
@@ -64,6 +86,8 @@ done
   printf 'App version: %s\n' "$APP_VERSION"
   printf 'App build: %s\n' "$APP_BUILD"
   printf 'Helper version: %s\n' "$HELPER_VERSION"
+  printf 'App build SDK: %s\n' "${SHIXIN_BUILD_SDK_PATH:-$(xcrun --sdk macosx --show-sdk-path)}"
+  printf 'Helper build SDK: %s\n' "${SHIXIN_HELPER_BUILD_SDK_PATH:-${SHIXIN_BUILD_SDK_PATH:-$(xcrun --sdk macosx --show-sdk-path)}}"
 } > "$STAGED_APP_DIR/Contents/Resources/SHIXIN-LAB-Build-Provenance.txt"
 
 SMARTCTL_SOURCE="${SHIXIN_SMARTCTL_SOURCE:-}"
@@ -83,15 +107,22 @@ if [ -n "$SMARTCTL_SOURCE" ]; then
     cp "$ROOT_DIR/Packaging/smartmontools-COPYING.txt" "$STAGED_APP_DIR/Contents/Resources/Licenses/smartmontools-COPYING.txt"
   fi
   "$SMARTCTL_SOURCE" --version > "$STAGED_APP_DIR/Contents/Resources/Licenses/smartctl-version.txt"
-  /usr/bin/shasum -a 256 "$SMARTCTL_SOURCE" >> "$STAGED_APP_DIR/Contents/Resources/Licenses/smartctl-version.txt"
 fi
 
 chmod +x "$STAGED_APP_DIR/Contents/MacOS/$PRODUCT_NAME"
 chmod +x "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL"
 
 if command -v codesign >/dev/null 2>&1; then
-  codesign --force --deep --sign - "$STAGED_APP_DIR" >/dev/null
+  codesign --force --sign - "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL" >/dev/null
+  if [ -f "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" ]; then
+    codesign --force --sign - "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" >/dev/null
+    SMARTCTL_SHA="$(shasum -a 256 "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" | awk '{print $1}')"
+    printf '%s  smartctl\n' "$SMARTCTL_SHA" >> "$STAGED_APP_DIR/Contents/Resources/Licenses/smartctl-version.txt"
+  fi
+  codesign --force --sign - "$STAGED_APP_DIR" >/dev/null
+  codesign --verify --deep --strict "$STAGED_APP_DIR"
 fi
+python3 "$ROOT_DIR/Scripts/verify-updater-bundle.py" "$STAGED_APP_DIR"
 
 mkdir -p "$APP_INSTALL_DIR"
 if [ -e "$APP_DIR" ]; then

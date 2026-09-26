@@ -5,8 +5,8 @@ import Darwin
 import Foundation
 
 public enum ReleaseConstants {
-    public static let appVersion = "0.3.0-beta"
-    public static let appBuild = "300"
+    public static let appVersion = "0.3.1-beta"
+    public static let appBuild = "301"
 }
 
 public enum HelperConstants {

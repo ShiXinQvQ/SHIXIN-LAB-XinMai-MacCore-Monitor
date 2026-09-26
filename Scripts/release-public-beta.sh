@@ -40,7 +40,9 @@ cleanup() {
   fi
   case "$WORK_ROOT" in
     /private/tmp/xinmai-public-beta.*)
-      /bin/rm -rf -- "$WORK_ROOT"
+      TRASH_DIR="${SHIXIN_TRASH_DIR:-$HOME/.Trash}"
+      mkdir -p "$TRASH_DIR"
+      mv "$WORK_ROOT" "$TRASH_DIR/$(basename "$WORK_ROOT")-$(date +%Y%m%d-%H%M%S)-$$"
       ;;
   esac
 }
@@ -85,9 +87,11 @@ ruby -e '
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings
 
 echo "[2/9] Build current source and run the non-stress core release self-test"
-swift build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPower
-swift build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerHelper
-swift run --scratch-path "$SCRATCH_PATH" -c release ShixinStressPowerSelfTest --core-only
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPower
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerHelper
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerSelfTest
+SELF_TEST_BIN="$(swift build --scratch-path "$SCRATCH_PATH" -c release --show-bin-path)/ShixinStressPowerSelfTest"
+"$SELF_TEST_BIN" --core-only
 
 echo "[3/9] Build or import the isolated release candidate"
 mkdir -p "$APP_OUTPUT" "$STAGE_DIR" "$MOUNT_DIR" "$DIST_DIR"
@@ -117,6 +121,7 @@ grep -Fx "App build: $APP_BUILD" "$APP_PROVENANCE" >/dev/null
 grep -Fx "Helper version: $EXPECTED_HELPER_VERSION" "$APP_PROVENANCE" >/dev/null
 codesign --verify --deep --strict --verbose=2 "$BUILT_APP"
 codesign --verify --strict --verbose=2 "$BUILT_HELPER"
+python3 Scripts/verify-updater-bundle.py "$BUILT_APP" --require-key
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$BUILT_APP/Contents/Info.plist")" = "$APP_VERSION"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$BUILT_APP/Contents/Info.plist")" = "$APP_BUILD"
 strings "$BUILT_HELPER" | grep -Fx "$EXPECTED_HELPER_VERSION" >/dev/null
@@ -124,6 +129,13 @@ file "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME" | grep -F "arm64" >/dev/null
 APP_EXECUTABLE_SHA256="$(shasum -a 256 "$BUILT_APP/Contents/MacOS/$PRODUCT_NAME" | awk '{print $1}')"
 HELPER_EXECUTABLE_SHA256="$(shasum -a 256 "$BUILT_HELPER" | awk '{print $1}')"
 PDF_SOURCE_MANIFEST_SHA256="$(shasum -a 256 "$PDF_SOURCE_MANIFEST" | awk '{print $1}')"
+UPDATE_PUBLIC_KEY_SHA256="$(python3 - "$BUILT_APP/Contents/Info.plist" <<'PY'
+import base64, hashlib, plistlib, sys
+with open(sys.argv[1], 'rb') as stream:
+    key = plistlib.load(stream)['SUPublicEDKey']
+print(hashlib.sha256(base64.b64decode(key, validate=True)).hexdigest())
+PY
+)"
 
 if [ -x "$BUILT_APP/Contents/Resources/Tools/smartctl" ]; then
   test -n "${SHIXIN_SMARTMONTOOLS_SOURCE_ARCHIVE:-}"
@@ -144,6 +156,7 @@ mkdir -p "$STAGE_DIR/Licenses"
 cp LICENSE "$STAGE_DIR/Licenses/SHIXIN-LAB-GPL-3.0.txt"
 cp NOTICE.md "$STAGE_DIR/Licenses/SHIXIN-LAB-NOTICE.md"
 cp Packaging/THIRD-PARTY-NOTICES.txt "$STAGE_DIR/Licenses/THIRD-PARTY-NOTICES.txt"
+cp Packaging/Sparkle-LICENSE.txt "$STAGE_DIR/Licenses/Sparkle-LICENSE.txt"
 cp Packaging/smartmontools-COPYING.txt "$STAGE_DIR/Licenses/smartmontools-COPYING.txt"
 cp "$PDF_SOURCE_MANIFEST" "$STAGE_DIR/Licenses/SHIXIN-LAB-PDF-SOURCE-MANIFEST.json"
 if [ -s "$BUILT_APP/Contents/Resources/Licenses/smartctl-version.txt" ]; then
@@ -160,6 +173,9 @@ fi
   printf 'Product version / 产品版本: %s\n' "$APP_VERSION"
   printf 'Build / 构建: %s\n' "$APP_BUILD"
   printf 'Helper version / Helper 版本: %s\n' "$EXPECTED_HELPER_VERSION"
+  printf 'Updater: Sparkle 2.10.0; manual checks by default; signed feed and archive required\n'
+  printf 'Update feed: https://shixinqvq.com/lab/maccore/updates/appcast.xml\n'
+  printf 'Update public-key SHA-256: %s\n' "$UPDATE_PUBLIC_KEY_SHA256"
   printf 'Source baseline / 源码基线: %s\n' "$SOURCE_COMMIT"
   printf 'Source working tree / 源码工作区: clean (required)\n'
   printf 'App build origin / App 构建来源: %s\n' "$APP_BUILD_ORIGIN"
@@ -207,6 +223,8 @@ test -s "$MOUNT_DIR/Licenses/smartmontools-COPYING.txt"
 test -s "$MOUNT_DIR/Licenses/SHIXIN-LAB-PDF-SOURCE-MANIFEST.json"
 codesign --verify --deep --strict --verbose=2 "$MOUNTED_APP"
 codesign --verify --strict --verbose=2 "$MOUNTED_HELPER"
+python3 Scripts/verify-updater-bundle.py "$MOUNTED_APP" --require-key
+cmp -s Packaging/Sparkle-LICENSE.txt "$MOUNT_DIR/Licenses/Sparkle-LICENSE.txt"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$MOUNTED_APP/Contents/Info.plist")" = "$APP_VERSION"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$MOUNTED_APP/Contents/Info.plist")" = "$APP_BUILD"
 strings "$MOUNTED_HELPER" | grep -Fx "$EXPECTED_HELPER_VERSION" >/dev/null
@@ -238,6 +256,10 @@ hdiutil detach "$MOUNT_DIR" -quiet
 MOUNTED=0
 
 echo "[8/9] Write and verify SHA-256"
+if [ "$(stat -f '%z' "$DMG_PATH")" -gt 26214400 ]; then
+  echo "DMG exceeds Cloudflare Pages' 25 MiB single-file limit; choose hosting before publication." >&2
+  exit 1
+fi
 (
   cd "$DIST_DIR"
   shasum -a 256 "$DMG_FILENAME" > "${DMG_FILENAME}.sha256"

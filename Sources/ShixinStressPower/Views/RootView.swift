@@ -133,9 +133,15 @@ struct SidebarView: View {
     @Binding var selection: AppSection?
 
     var body: some View {
-        List(AppSection.allCases, selection: $selection) { section in
-            Label(L10n.t(section.rawValue), systemImage: section.symbolName)
-                .tag(section)
+        Group {
+            if LabAppearanceProfile.usesStableSurfaces {
+                sectionList
+                    // The supplied macOS 26 screenshot has a 32 pt row pitch (64 px at 2x).
+                    .environment(\.defaultMinListRowHeight, 32)
+                    .padding(.horizontal, 6)
+            } else {
+                sectionList
+            }
         }
         .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 300)
         .safeAreaInset(edge: .bottom) {
@@ -168,4 +174,26 @@ struct SidebarView: View {
             .padding(.vertical, 14)
         }
     }
+
+    private var sectionList: some View {
+        List(AppSection.allCases, selection: $selection) { section in
+            Group {
+                if LabAppearanceProfile.usesStableSurfaces {
+                    HStack(spacing: 8) {
+                        Image(systemName: section.symbolName)
+                            .font(.system(size: 14, weight: .regular))
+                            .symbolRenderingMode(.monochrome)
+                            .frame(width: 20)
+                        Text(L10n.t(section.rawValue))
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(.primary)
+                } else {
+                    Label(L10n.t(section.rawValue), systemImage: section.symbolName)
+                }
+            }
+            .tag(section)
+        }
+    }
+
 }

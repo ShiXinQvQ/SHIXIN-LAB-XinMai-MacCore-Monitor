@@ -16,3 +16,12 @@ public distribution bundles smartctl, the DMG Licenses directory also includes
 the corresponding source archive for the recorded version. Official upstream
 source and releases are available from the project URL above. No warranty is
 provided by smartmontools or SHIXIN LAB.
+
+Sparkle 2.10.0
+------------------------
+Project: https://github.com/sparkle-project/Sparkle
+Copyright: Sparkle Project contributors and third-party authors listed in its license.
+License: MIT and bundled component notices; full text in Sparkle-LICENSE.txt.
+Sparkle performs user-controlled application updates. Its Ed25519 update signatures
+are separate from Apple's code signing and do not imply notarization.
+This application defaults to manual checks and disables system profiling and automatic installation.

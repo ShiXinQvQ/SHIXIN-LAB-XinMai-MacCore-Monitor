@@ -1,4 +1,5 @@
 <p align="center">
+
   <img src="Packaging/AppIconPreviewGitHub.png" width="128" height="128" alt="SHIXIN LAB XinMai final v3 app icon">
 </p>
 
@@ -18,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta"><img alt="release v0.3.0-beta" src="https://img.shields.io/badge/release-v0.3.0--beta-0A84FF?style=flat-square"></a>
+  <a href="https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.1-beta"><img alt="release v0.3.1-beta" src="https://img.shields.io/badge/release-v0.3.1--beta-0A84FF?style=flat-square"></a>
   <img alt="source GPL-3.0-or-later" src="https://img.shields.io/badge/source-GPL--3.0--or--later-2EA44F?style=flat-square">
   <img alt="macOS 15 or later" src="https://img.shields.io/badge/macOS-15%2B-555555?style=flat-square">
   <img alt="Apple Silicon arm64" src="https://img.shields.io/badge/Apple%20Silicon-arm64-555555?style=flat-square">
@@ -42,7 +43,7 @@ experiments.
 
 - Product page: [https://shixinqvq.com/lab/maccore/](https://shixinqvq.com/lab/maccore/)
 - SHIXIN LAB: [https://shixinqvq.com/](https://shixinqvq.com/)
-- Current release: `v0.3.0 Beta` (build `300`)
+- Current release: `v0.3.1 Beta` (build `301`)
 - Helper: `0.3.0-helper`
 - Minimum system: macOS `15.0+`
 - Architecture: Apple Silicon / `arm64`
@@ -52,21 +53,33 @@ experiments.
 
 ### Download
 
-`v0.3.0 Beta` is the current published release. Download the DMG and its
+`v0.3.1 Beta` is the current published release. Download the DMG and its
 matching checksum from the same GitHub Release:
 
-- [Download the v0.3.0 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg)
-- [Download the matching SHA-256 file](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256)
-- [Release notes and source archive](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta)
+- [Download the v0.3.1 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.1-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg)
+- [Download the matching SHA-256 file](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.1-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg.sha256)
+- [Release notes and source archive](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.1-beta)
 - [Official product page](https://shixinqvq.com/lab/maccore/)
 
 Verify the DMG before opening it:
 
 ```bash
-shasum -a 256 -c SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256
+shasum -a 256 -c SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg.sha256
 ```
 
 Continue only when the result reports `OK`.
+
+### In-app updates
+
+Settings & About → Check for Updates checks the signed official feed. Checks are
+manual by default; optional scheduled checks do not silently install updates.
+Both the feed and DMG require Ed25519 verification. Version 0.3.0 users need one
+manual installation of 0.3.1 to enable future in-app updates. History is retained;
+system Helper installation remains a separate authorization.
+
+The macOS 27 appearance adjustments are OS-specific. Earlier systems retain the
+original appearance branches; SDK compilation and CI are not a substitute for
+physical-device visual acceptance.
 
 ### Install
 
@@ -270,7 +283,7 @@ smartmontools / smartctl is licensed under `GPL-2.0-or-later`; see
 
 - 产品官网：[https://shixinqvq.com/lab/maccore/](https://shixinqvq.com/lab/maccore/)
 - SHIXIN LAB 官网：[https://shixinqvq.com/](https://shixinqvq.com/)
-- 当前发布版本：`v0.3.0 Beta`（build `300`）
+- 当前发布版本：`v0.3.1 Beta`（build `301`）
 - Helper：`0.3.0-helper`
 - 最低系统：macOS `15.0+`
 - 架构：Apple Silicon / `arm64`
@@ -278,18 +291,18 @@ smartmontools / smartctl is licensed under `GPL-2.0-or-later`; see
 
 ### 下载
 
-`v0.3.0 Beta` 是当前正式发布版本。请从同一个 GitHub Release 下载 DMG 与配套
+`v0.3.1 Beta` 是当前正式发布版本。请从同一个 GitHub Release 下载 DMG 与配套
 校验文件：
 
-- [下载 v0.3.0 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg)
-- [下载配套 SHA-256 文件](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.0-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256)
-- [版本说明与源码归档](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.0-beta)
+- [下载 v0.3.1 Beta DMG](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.1-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg)
+- [下载配套 SHA-256 文件](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/download/v0.3.1-beta/SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg.sha256)
+- [版本说明与源码归档](https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor/releases/tag/v0.3.1-beta)
 - [正式产品官网](https://shixinqvq.com/lab/maccore/)
 
 首次打开前验证 DMG：
 
 ```bash
-shasum -a 256 -c SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.0-Beta.dmg.sha256
+shasum -a 256 -c SHIXIN-LAB-XinMai-MacCore-Monitor-0.3.1-Beta.dmg.sha256
 ```
 
 只有结果显示 `OK` 时才继续安装。
@@ -342,6 +355,15 @@ DMG 内附正式中英双语安装说明、版权与开源许可说明、第三�
   信号。
 - 明确表达取消、超时、部分失败、数据不足和本机历史，不把单一服务失败伪装成
   完整结论。
+
+### 应用内更新
+
+在「设置关于 → 检查更新」即可检查新版本。默认手动检查，可主动开启定期检查；
+下载与安装由你决定。更新清单和安装包均需通过签名校验。0.3.0 用户需要手动安装
+0.3.1 一次，此后可在 App 内更新。历史数据保留，Helper 仍单独授权更新。
+
+27 的外观调整仅在该系统启用，其他系统保留原外观分支。构建和自动测试不能
+替代旧系统真机的视觉验收。
 
 ### 本地数据与隐私
 

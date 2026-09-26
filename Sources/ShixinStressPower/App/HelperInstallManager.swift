@@ -15,7 +15,44 @@ struct HelperInstallStatus: Equatable {
     var bundledBinaryMatches: Bool?
     var samplingState: String?
     var sampleAgeSeconds: TimeInterval?
-    var detail: String
+    var installationDetail: String
+
+    var detail: String {
+        let samplingDetail: String
+        if let samplingState {
+            let age = samplingState == "idle" ? L10n.t("按需待机")
+                : sampleAgeSeconds.map { String(format: L10n.t("%.1f 秒"), $0) } ?? L10n.t("等待首样本")
+            samplingDetail = String(format: L10n.t("采样流 %@ / %@"), samplingState, age)
+        } else {
+            samplingDetail = L10n.t("采样流状态未知")
+        }
+        return installationDetail + " · " + samplingDetail
+    }
+
+    mutating func observe(_ sample: TelemetrySample) {
+        let nextState: String
+        if sample.source == .fallback {
+            guard socketReachable else { return }
+            // Local temperature recovery does not mean the power stream recovered.
+            nextState = sample.helperSampleSequence == 0 ? "starting" : "restarting"
+        } else if let age = sample.helperSampleAgeSeconds {
+            nextState = age.isFinite && age <= 2 ? "ready" : "restarting"
+        } else if sample.helperSampleSequence != nil {
+            // Preserve the older protocol's unknown-age compatibility, rather
+            // than inventing a ready state with an infinite effective age.
+            samplingState = nil
+            sampleAgeSeconds = nil
+            return
+        } else {
+            return
+        }
+        if nextState == samplingState {
+            if nextState == "ready" { return }
+            if sample.helperSampleAgeSeconds == sampleAgeSeconds { return }
+        }
+        samplingState = nextState
+        sampleAgeSeconds = sample.helperSampleAgeSeconds
+    }
 
     var isOperational: Bool {
         let serviceAvailable = helperExists && plistExists && launchdLoaded && socketReachable
@@ -55,15 +92,6 @@ enum HelperInstallManager {
         let bundledBinaryMatches = installedBinaryMatchesBundled()
         let samplingState = helperInfo?.samplingHealth?.state
         let sampleAgeSeconds = helperInfo?.samplingHealth?.sampleAgeSeconds
-        let samplingDetail: String
-        if let samplingState {
-            let age = samplingState == "idle"
-                ? L10n.t("按需待机")
-                : sampleAgeSeconds.map { String(format: L10n.t("%.1f 秒"), $0) } ?? L10n.t("等待首样本")
-            samplingDetail = String(format: L10n.t("采样流 %@ / %@"), samplingState, age)
-        } else {
-            samplingDetail = L10n.t("采样流状态未知")
-        }
         let detail = [
             L10n.t(helperExists ? "二进制存在" : "二进制缺失"),
             L10n.t(plistExists ? "LaunchDaemon plist 存在" : "LaunchDaemon plist 缺失"),
@@ -74,8 +102,7 @@ enum HelperInstallManager {
                 helperVersion ?? L10n.t("未知"),
                 HelperConstants.helperVersion
             ),
-            binaryMatchDetail(bundledBinaryMatches),
-            samplingDetail
+            binaryMatchDetail(bundledBinaryMatches)
         ].joined(separator: " · ")
         return HelperInstallStatus(
             helperExists: helperExists,
@@ -87,7 +114,7 @@ enum HelperInstallManager {
             bundledBinaryMatches: bundledBinaryMatches,
             samplingState: samplingState,
             sampleAgeSeconds: sampleAgeSeconds,
-            detail: detail
+            installationDetail: detail
         )
     }
 
