@@ -29,7 +29,7 @@ LEGAL_PDF="$ROOT_DIR/output/pdf/SHIXIN LAB - XinMai - Copyright, Open Source Lic
 PDF_SOURCE_MANIFEST="$ROOT_DIR/output/pdf/SHIXIN-LAB-XinMai-PDF-SOURCE-MANIFEST.json"
 WORK_ROOT="$(mktemp -d /private/tmp/xinmai-public-beta.XXXXXX)"
 APP_OUTPUT="$WORK_ROOT/app"
-SCRATCH_PATH="$WORK_ROOT/swift-build"
+SCRATCH_PATH="${SHIXIN_RELEASE_SCRATCH_PATH:-$WORK_ROOT/swift-build}"
 STAGE_DIR="$WORK_ROOT/stage"
 MOUNT_DIR="$WORK_ROOT/mount"
 MOUNTED=0
@@ -87,9 +87,9 @@ ruby -e '
   Sources/ShixinStressPower/Resources/ja.lproj/Localizable.strings
 
 echo "[2/9] Build current source and run the non-stress core release self-test"
-bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPower
-bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerHelper
-bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --product ShixinStressPowerSelfTest
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --jobs "${SHIXIN_BUILD_JOBS:-2}" --product ShixinStressPower
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --jobs "${SHIXIN_BUILD_JOBS:-2}" --product ShixinStressPowerHelper
+bash Scripts/swift-build.sh build --scratch-path "$SCRATCH_PATH" -c release --jobs "${SHIXIN_BUILD_JOBS:-2}" --product ShixinStressPowerSelfTest
 SELF_TEST_BIN="$(swift build --scratch-path "$SCRATCH_PATH" -c release --show-bin-path)/ShixinStressPowerSelfTest"
 "$SELF_TEST_BIN" --core-only
 
