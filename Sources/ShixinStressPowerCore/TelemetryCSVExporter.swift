@@ -53,7 +53,11 @@ public enum TelemetryCSVExporter {
             number(sample.helperSampleAgeSeconds),
             sampleInterval,
             sample.isDegraded ? "true" : "false",
-            sample.message ?? ""
+            sample.message ?? "",
+            sample.powerScope.rawValue,
+            number(sample.systemPower?.watts),
+            sample.systemPower?.source ?? "",
+            sample.systemPower.map { isoFormatter.string(from: $0.observedAt) } ?? ""
         ]
         return (identity + powerAndActivity + temperatures + context)
             .map(csvEscape)
@@ -105,7 +109,11 @@ public enum TelemetryCSVExporter {
         "helperSampleAgeSeconds",
         "samplingIntervalMilliseconds",
         "isDegraded",
-        "message"
+        "message",
+        "powerMeasurementScope",
+        "systemPowerW",
+        "systemPowerSource",
+        "systemPowerObservedAt"
     ]
 
     private static let isoFormatter: ISO8601DateFormatter = {

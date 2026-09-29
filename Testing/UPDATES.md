@@ -1,3 +1,16 @@
+# 0.3.3-beta / 303 acceptance — 2026-09-29
+
+- Whole-machine power now prefers SMC PSTR; the battery SystemLoad compatibility source is explicitly labelled slow. App polling is about 500 ms; observed hardware updates are about one second on the local M3 Max.
+- 34 local regression tests passed, including opt-in bounded CPU/GPU/combined stress. One CPU worker and 150 ms GPU bursts avoid monopolizing a working machine. Actual stop times were below 4 ms in this run; this is not a universal latency guarantee.
+- The 20-second real sampler/gate/presentation check observed 22 displayed changes; maximum gap was 1.57 seconds. The installed App's actual accessibility values were separately observed changing.
+- Existing history remains computing-only; new sessions and CSV record whole-machine scope and source. No comparison delta is calculated across different scopes.
+- Hardware-only cadence and stress checks are opt-in; unsupported/virtual hosts must be allowed to report unavailable sensors.
+- Eight macOS27 page surfaces were captured locally; window defaults and existing appearance branches remain unchanged. This is not macOS26 visual acceptance or a long-duration full-load test.
+- Retained Helper binaries can be supplied to build-app.sh using SHIXIN_HELPER_BINARY_SOURCE plus SHIXIN_HELPER_SOURCE_COMMIT. Integrity is checked and the original source commit is recorded; the Helper is not re-signed or installed.
+- Previously observed Helper idle/recovery Bad file descriptor remains a disclosed, unproven-resolved limitation; no current repro was assumed from old records.
+
+---
+
 # macOS 27 appearance and updater acceptance
 
 This document records acceptance evidence and remaining coverage limits for 0.3.1-beta / 301. Earlier dated observations below are historical, not current failures.

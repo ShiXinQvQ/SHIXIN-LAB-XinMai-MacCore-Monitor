@@ -5,6 +5,15 @@ semantic-versioning compatibility during Beta.
 
 Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容。
 
+## 0.3.3-beta (Build 303) — 2026-09-29
+
+- Show whole-machine system load in monitoring, overview, curves, peak/average and energy; retain CPU/GPU as separate compute estimates.
+- Prefer the read-only SMC PSTR sensor for timely readings. Hardware without PSTR uses a clearly labelled slower system-load reading; unavailable is never replaced by charger input or CPU/GPU sums.
+- Preserve the computing-only meaning of older history and exports; do not calculate misleading comparisons between old and new power scopes.
+- Keep the existing window, macOS appearance branches, v3 icon, Helper and manual Sparkle update behavior.
+- Acceptance: bounded single-worker CPU and short GPU/combined bursts, stop/recovery checks, live power cadence and regression tests. This is not long-duration full-load certification or every-Mac visual acceptance.
+- Known limitation: previously observed intermittent Helper idle/recovery `Bad file descriptor` has not been proven permanently resolved; whole-machine power remains independent of Helper.
+
 ## 0.3.1-beta (Build 301) — 2026-09-25
 
 - macOS 27 only: stable dark card surfaces and readable secondary text; original appearance branches remain on other macOS releases.

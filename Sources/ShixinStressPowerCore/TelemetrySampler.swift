@@ -136,7 +136,7 @@ public actor TelemetrySampler {
         if !helperMessage.isEmpty {
             parts.append(helperMessage)
         }
-        parts.append("powermetrics 需要管理员/root 权限。压力测试仍可运行；功耗与频率会降级。")
+        parts.append("powermetrics 需要管理员/root 权限。压力测试仍可运行；CPU/GPU 功耗与频率会降级，整机功耗独立读取。")
         if hidTemperatures.cpuTemperatureC != nil || hidTemperatures.gpuTemperatureC != nil {
             parts.append("CPU/GPU 温度已尝试从 \(hidTemperatures.sourceDetail) 读取。")
         } else if hidTemperatures.socTemperatureC != nil {
@@ -181,6 +181,8 @@ public actor TelemetrySampler {
     }
 
     private func applyKernelCPUActivity(to sample: inout TelemetrySample) {
+        // Read independently even when powermetrics/Helper is unavailable.
+        sample.systemPower = SystemPowerReader.read()
         // powermetrics CPU residency and whole-machine kernel CPU utilisation
         // are different quantities. Missing ticks must not leak the former
         // (often 100%) into the latter's chart.

@@ -1,6 +1,6 @@
 # SHIXIN LAB · 「芯脉」
 ## 安装与使用说明 | Installation & Usage Guide
-版本 0.3.1-beta · 构建 301 · Apple Silicon Mac · macOS 15+
+版本 0.3.3-beta · 构建 303 · Apple Silicon Mac · macOS 15+
 
 ---
 
@@ -14,7 +14,7 @@ SHIXIN LAB · 「芯脉」 MacCore Monitor 是面向 Apple Silicon Mac 的原生
 
 ## 发行包内容
 
-- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.1-beta，构建 301。
+- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.3-beta，构建 303。
 - **Applications**：将 App 拖入此快捷方式即可安装到“应用程序”。
 - **安装与使用说明**：本双语文档。
 - **版权、开源许可与第三方声明**：GPL-3.0-or-later、版权、品牌资产、商标与责任边界。
@@ -110,7 +110,7 @@ Power, frequency, and thermal state are primarily provided by macOS powermetrics
 
 ## What Is Included
 
-- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.1-beta, build 301.
+- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.3-beta, build 303.
 - **Applications**: drag the app onto this shortcut to install it in Applications.
 - **Installation & Usage Guide**: this bilingual document.
 - **Copyright, Open Source License & Third-Party Notices**: GPL-3.0-or-later, copyright, protected brand assets, trademarks, and responsibility terms.
@@ -195,3 +195,9 @@ For support, generate a diagnostic report under Settings & About and include the
 
 - Website: https://shixinqvq.com/lab/maccore/
 - Source and issues: https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
+
+## 0.3.3 功耗口径 / Power measurement scope
+
+整机功耗优先读取 SMC PSTR 系统负载，不是 CPU/GPU 相加或充电器额定功率。硬件通常按自身节奏更新；无快传感器时标注低频读数，不可用时明确显示不可用。旧历史继续表示计算部分，不能直接与新版整机值比较。
+
+Whole-machine power uses the SMC PSTR system-load reading when available, not CPU/GPU sums or charger ratings. Hardware refresh timing varies; the slower compatibility source is labelled. Older history retains its computing-only meaning and is not directly comparable with whole-machine readings.

@@ -460,7 +460,7 @@ struct LiveSessionCard: View {
             if let session = appState.liveSession {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 10)], spacing: 10) {
                     MetricTile(title: "运行时间", value: Formatters.seconds(session.elapsedSeconds), detail: "Elapsed", systemImage: "timer", tint: .cyan)
-                    MetricTile(title: "峰值功耗", value: Formatters.watts(session.peakPowerW), detail: "Peak", systemImage: "bolt.fill", tint: .yellow)
+                    MetricTile(title: "整机峰值", value: Formatters.watts(session.peakPowerW), detail: "整机功耗", systemImage: "bolt.fill", tint: .yellow)
                     switch session.configuration.mode {
                     case .cpu:
                         MetricTile(title: "CPU 峰值功耗", value: Formatters.watts(session.peakCPUPowerW), detail: "CPU Peak", systemImage: "cpu", tint: .green)

@@ -328,13 +328,14 @@ public enum PerformanceThermalReportBuilder {
             $0.cpuTemperatureC != nil || $0.gpuTemperatureC != nil || $0.socTemperatureC != nil
         }.count
         let fanSamples = samples.filter { $0.fanRPMs?.isEmpty == false }.count
-        return "powermetrics \(powerSamples) / fallback \(fallbackSamples) · 温度 \(temperatureSamples) · 风扇 \(fanSamples)"
+        let systemPowerSamples = samples.filter { $0.systemPower?.watts != nil }.count
+        return "整机读数 \(systemPowerSamples) · powermetrics \(powerSamples) / fallback \(fallbackSamples) · 温度 \(temperatureSamples) · 风扇 \(fanSamples)"
     }
 
     private static func isModeRelevantSampleComplete(_ sample: TelemetrySample, mode: StressMode) -> Bool {
         guard sample.source == .powermetrics,
               !sample.isDegraded,
-              sample.totalDisplayedPowerW != nil else {
+              sample.computePowerW != nil else {
             return false
         }
         switch mode {
@@ -370,7 +371,7 @@ public enum PerformanceThermalReportBuilder {
         case .gpu:
             return sample.gpuPowerW
         case .combined:
-            return sample.totalDisplayedPowerW
+            return sample.computePowerW
         }
     }
 

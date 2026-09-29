@@ -42,7 +42,7 @@ public enum HistoryStoreError: LocalizedError {
 }
 
 public final class HistoryStore {
-    public static let currentSchemaVersion = 3
+    public static let currentSchemaVersion = 4
     public let appSupportURL: URL
     public let sessionsURL: URL
     public let logURL: URL

@@ -142,13 +142,13 @@ private struct ShareReportImageView: View {
     private var metricGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
             ShareMetricTile(title: "持续时间", value: Formatters.seconds(session.durationSeconds), tint: .cyan)
-            ShareMetricTile(title: "峰值功耗", value: Formatters.watts(session.peakPowerW), tint: .yellow)
+            ShareMetricTile(title: session.powerScope.peakTitle, value: Formatters.watts(session.peakPowerW), tint: .yellow)
             ShareMetricTile(title: "60 秒持续", value: Formatters.watts(session.validatedSustainedPower60sW), tint: .purple)
             ShareMetricTile(title: "5 分钟持续", value: Formatters.watts(session.validatedSustainedPower300sW), tint: .blue)
             ShareMetricTile(title: "最高温度", value: Formatters.celsius(report?.peakCompositeTemperatureC ?? compositeTemperaturePeak), tint: .red)
             ShareMetricTile(title: "平均温度", value: Formatters.celsius(report?.averageCompositeTemperatureC), tint: .pink)
             ShareMetricTile(title: "最差热状态", value: session.worstThermalState, tint: session.worstThermalState.thermalTint)
-            ShareMetricTile(title: "估算能耗", value: Formatters.wh(session.estimatedEnergyWh), tint: .mint)
+            ShareMetricTile(title: session.powerScope.energyTitle, value: Formatters.wh(session.estimatedEnergyWh), tint: .mint)
             ShareMetricTile(title: "峰值风扇转速", value: Formatters.rpmCompact(session.peakFanRPM), tint: .teal)
         }
     }
@@ -211,7 +211,7 @@ private struct ShareReportImageView: View {
                     .foregroundStyle(.white.opacity(0.8))
                 Spacer()
                 HStack(spacing: 12) {
-                    ShareLegendItem(title: "总功耗", color: .yellow)
+                    ShareLegendItem(title: session.powerScope.title, color: .yellow)
                     ShareLegendItem(title: "最高温度", color: .red)
                     if let latestPowerText {
                         ShareValueBadge(title: "最终功耗", value: latestPowerText, color: .yellow)
