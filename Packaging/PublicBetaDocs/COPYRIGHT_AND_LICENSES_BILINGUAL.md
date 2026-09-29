@@ -8,7 +8,7 @@
 
 ## 产品身份与版权
 
-Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.3-beta，构建号 301。
+Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.3-beta，构建号 303。
 
 SHIXIN LAB 自有程序源码的著作权仍归 SHIXIN LAB / Shixin 所有，并按 GPL-3.0-or-later 授权。产品名称、品牌视觉、最终 v3 图标、Logo、截图、宣传视觉、中英文文档及其他 SHIXIN LAB 原创品牌资产不因源码开源而失去著作权保护。
 
