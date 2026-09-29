@@ -40,11 +40,20 @@ HELPER_BUILD_ARGS=(-c release --jobs "${SHIXIN_BUILD_JOBS:-2}")
 if [ -n "${SHIXIN_HELPER_SWIFT_SCRATCH_PATH:-${SHIXIN_SWIFT_SCRATCH_PATH:-}}" ]; then
   HELPER_BUILD_ARGS+=(--scratch-path "${SHIXIN_HELPER_SWIFT_SCRATCH_PATH:-$SHIXIN_SWIFT_SCRATCH_PATH}")
 fi
-SHIXIN_BUILD_SDK_PATH="${SHIXIN_HELPER_BUILD_SDK_PATH:-${SHIXIN_BUILD_SDK_PATH:-}}" \
-  bash "$ROOT_DIR/Scripts/swift-build.sh" build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME"
-
 BIN_PATH="$(swift build "${SWIFT_BUILD_ARGS[@]}" --product "$PRODUCT_NAME" --show-bin-path)/$PRODUCT_NAME"
-HELPER_BIN_PATH="$(swift build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME" --show-bin-path)/$HELPER_PRODUCT_NAME"
+if [ -n "${SHIXIN_HELPER_BINARY_SOURCE:-}" ]; then
+  # Preserve an already verified Helper when this release only changes the App.
+  # Keep its exact source revision explicit for GPL source correspondence.
+  test -n "${SHIXIN_HELPER_SOURCE_COMMIT:-}"
+  git cat-file -e "${SHIXIN_HELPER_SOURCE_COMMIT}^{commit}"
+  test -x "$SHIXIN_HELPER_BINARY_SOURCE"
+  codesign --verify --strict "$SHIXIN_HELPER_BINARY_SOURCE"
+  HELPER_BIN_PATH="$SHIXIN_HELPER_BINARY_SOURCE"
+else
+  SHIXIN_BUILD_SDK_PATH="${SHIXIN_HELPER_BUILD_SDK_PATH:-${SHIXIN_BUILD_SDK_PATH:-}}" \
+    bash "$ROOT_DIR/Scripts/swift-build.sh" build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME"
+  HELPER_BIN_PATH="$(swift build "${HELPER_BUILD_ARGS[@]}" --product "$HELPER_PRODUCT_NAME" --show-bin-path)/$HELPER_PRODUCT_NAME"
+fi
 
 mkdir -p "$STAGED_APP_DIR/Contents/MacOS" "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools" "$STAGED_APP_DIR/Contents/Resources/Tools" "$STAGED_APP_DIR/Contents/Resources/Licenses"
 cp "$BIN_PATH" "$STAGED_APP_DIR/Contents/MacOS/$PRODUCT_NAME"
@@ -86,6 +95,7 @@ done
   printf 'App version: %s\n' "$APP_VERSION"
   printf 'App build: %s\n' "$APP_BUILD"
   printf 'Helper version: %s\n' "$HELPER_VERSION"
+  printf 'Helper source commit: %s\n' "${SHIXIN_HELPER_SOURCE_COMMIT:-$SOURCE_COMMIT}"
   printf 'App build SDK: %s\n' "${SHIXIN_BUILD_SDK_PATH:-$(xcrun --sdk macosx --show-sdk-path)}"
   printf 'Helper build SDK: %s\n' "${SHIXIN_HELPER_BUILD_SDK_PATH:-${SHIXIN_BUILD_SDK_PATH:-$(xcrun --sdk macosx --show-sdk-path)}}"
 } > "$STAGED_APP_DIR/Contents/Resources/SHIXIN-LAB-Build-Provenance.txt"
@@ -113,7 +123,11 @@ chmod +x "$STAGED_APP_DIR/Contents/MacOS/$PRODUCT_NAME"
 chmod +x "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL"
 
 if command -v codesign >/dev/null 2>&1; then
-  codesign --force --sign - "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL" >/dev/null
+  if [ -z "${SHIXIN_HELPER_BINARY_SOURCE:-}" ]; then
+    codesign --force --sign - "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL" >/dev/null
+  else
+    cmp -s "$SHIXIN_HELPER_BINARY_SOURCE" "$STAGED_APP_DIR/Contents/Resources/PrivilegedHelperTools/$HELPER_LABEL"
+  fi
   if [ -f "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" ]; then
     codesign --force --sign - "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" >/dev/null
     SMARTCTL_SHA="$(shasum -a 256 "$STAGED_APP_DIR/Contents/Resources/Tools/smartctl" | awk '{print $1}')"

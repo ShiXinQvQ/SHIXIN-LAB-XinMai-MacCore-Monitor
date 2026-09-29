@@ -196,9 +196,9 @@ private struct DataOverviewShareImage: View {
             spacing: 14
         ) {
             OverviewShareMetric(
-                title: "总/包功耗",
+                title: "整机功耗",
                 value: Formatters.watts(snapshot.sample.totalDisplayedPowerW),
-                detail: "当前系统估算",
+                detail: snapshot.sample.systemPowerDetail,
                 systemImage: "bolt.fill",
                 tint: accentBlue
             )
@@ -240,9 +240,9 @@ private struct DataOverviewShareImage: View {
                 OverviewShareRow(title: "P 核频率", value: Formatters.mhz(snapshot.sample.pClusterFrequencyMHz))
                 OverviewShareRow(title: "E 核频率", value: Formatters.mhz(snapshot.sample.eClusterFrequencyMHz))
                 OverviewShareRow(title: "GPU 频率", value: Formatters.mhz(snapshot.sample.gpuFrequencyMHz))
-                OverviewShareRow(title: "峰值功耗", value: Formatters.watts(snapshot.peakPowerW))
-                OverviewShareRow(title: "持续功耗", value: Formatters.watts(snapshot.sustainedPower60sW))
-                OverviewShareRow(title: "估算能耗", value: Formatters.wh(snapshot.estimatedEnergyWh))
+                OverviewShareRow(title: "整机峰值", value: Formatters.watts(snapshot.peakPowerW))
+                OverviewShareRow(title: "整机持续", value: Formatters.watts(snapshot.sustainedPower60sW))
+                OverviewShareRow(title: "整机能耗", value: Formatters.wh(snapshot.estimatedEnergyWh))
             }
         }
     }

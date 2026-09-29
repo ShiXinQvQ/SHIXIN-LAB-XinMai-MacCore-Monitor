@@ -372,7 +372,7 @@ struct TelemetryMetricGrid: View {
             columns: Array(repeating: GridItem(.flexible(minimum: minWidth), spacing: 12), count: columns),
             spacing: 12
         ) {
-            MetricTile(title: "总/包功耗", value: Formatters.watts(sample?.totalDisplayedPowerW), detail: sample?.source.rawValue ?? "等待 powermetrics", systemImage: "bolt.fill", tint: .yellow)
+            MetricTile(title: "整机功耗", value: Formatters.watts(sample?.totalDisplayedPowerW), detail: sample?.systemPowerDetail ?? "等待整机读数", systemImage: "bolt.fill", tint: .yellow)
             MetricTile(title: "CPU 功耗", value: Formatters.watts(sample?.cpuPowerW), detail: activityDetail(sample?.cpuActivePercent), systemImage: "cpu", tint: .green)
             MetricTile(title: "GPU 功耗", value: Formatters.watts(sample?.gpuPowerW), detail: activityDetail(sample?.gpuActivePercent), systemImage: "rectangle.3.group", tint: .blue)
             MetricTile(title: "CPU 温度", value: Formatters.celsius(sample?.cpuTemperatureC), detail: temperatureDetail(sample: sample, count: sample?.cpuTemperatureSensorCount), systemImage: "thermometer.high", tint: .red)
@@ -380,8 +380,8 @@ struct TelemetryMetricGrid: View {
             MetricTile(title: "芯片温度", value: Formatters.celsius(sample?.socTemperatureC), detail: socTemperatureDetail(sample: sample), systemImage: "sensor.tag.radiowaves.forward", tint: .teal)
             MetricTile(title: "硬盘温度", value: Formatters.celsius(sample?.diskTemperatureC), detail: sample?.diskTemperatureSourceDetail ?? "等待 SMART", systemImage: "internaldrive", tint: .mint)
             MetricTile(title: "运行时间", value: Formatters.seconds(session?.elapsedSeconds ?? 0), detail: appState.configuration.mode.title, systemImage: "timer", tint: .cyan)
-            MetricTile(title: "峰值功耗", value: Formatters.watts(rolling.peakPowerW), detail: rolling.peakDetail, systemImage: "chart.line.uptrend.xyaxis", tint: .orange)
-            MetricTile(title: "持续功耗", value: Formatters.watts(rolling.sustainedPower60sW), detail: "60 秒滚动平均", systemImage: "waveform.path.ecg", tint: .purple)
+            MetricTile(title: "整机峰值", value: Formatters.watts(rolling.peakPowerW), detail: rolling.peakDetail, systemImage: "chart.line.uptrend.xyaxis", tint: .orange)
+            MetricTile(title: "整机持续", value: Formatters.watts(rolling.sustainedPower60sW), detail: "60 秒滚动平均", systemImage: "waveform.path.ecg", tint: .purple)
             MetricTile(title: "风扇转速", value: Formatters.rpm(displayFanRPM(sample)), detail: fanDetail(sample: sample), systemImage: "fan", tint: .cyan)
             MetricTile(title: "热状态", value: sample?.thermalState ?? "等待", detail: sample?.thermalPressure ?? "ProcessInfo thermalState", systemImage: "thermometer.medium", tint: (sample?.thermalState ?? "Unknown").thermalTint)
         }
@@ -432,10 +432,17 @@ struct RollingTelemetrySummary {
     var energyDetail: String
 
     init(samples: [TelemetrySample], session: LiveSession?) {
-        let recentSamples = Array(samples.suffix(900))
-        peakPowerW = session?.peakPowerW ?? recentSamples.compactMap(\.totalDisplayedPowerW).max()
-        sustainedPower60sW = session?.sustainedPower60sW ?? Self.rollingAveragePower(samples: recentSamples, windowSeconds: 60)
-        estimatedEnergyWh = session?.estimatedEnergyWh ?? Self.energyWh(samples: recentSamples)
+        let recentSamples = Array(samples.suffix(900)).filter { $0.powerScope == .wholeMachine }
+        if let session {
+            // An incomplete session is not permission to substitute pre-session data.
+            peakPowerW = session.powerScope == .wholeMachine ? session.peakPowerW : nil
+            sustainedPower60sW = session.powerScope == .wholeMachine ? session.sustainedPower60sW : nil
+            estimatedEnergyWh = session.powerScope == .wholeMachine ? session.estimatedEnergyWh : nil
+        } else {
+            peakPowerW = recentSamples.compactMap(\.totalDisplayedPowerW).max()
+            sustainedPower60sW = Self.rollingAveragePower(samples: recentSamples, windowSeconds: 60)
+            estimatedEnergyWh = Self.energyWh(samples: recentSamples)
+        }
         peakDetail = session == nil ? "最近采样峰值" : "Session Peak"
         energyDetail = session == nil ? "最近窗口估算" : "功率积分估算"
     }
@@ -459,7 +466,11 @@ struct RollingTelemetrySummary {
         let gapThreshold = TelemetryCurveCompressor.timingSummary(samples: samples).trustedGapThresholdSeconds
         var joules = 0.0
         var coveredSeconds = 0.0
+        let missingDates = samples.filter { $0.totalDisplayedPowerW == nil }.map(\.capturedAt).sorted()
+        var missingIndex = 0
         for index in 1..<points.count {
+            while missingIndex < missingDates.count, missingDates[missingIndex] <= points[index - 1].0 { missingIndex += 1 }
+            if missingIndex < missingDates.count, missingDates[missingIndex] < points[index].0 { continue }
             let elapsed = points[index].0.timeIntervalSince(points[index - 1].0)
             guard elapsed > 0, elapsed <= gapThreshold else { continue }
             let averagePower = (points[index].1 + points[index - 1].1) / 2
@@ -484,12 +495,12 @@ struct LivePowerChart: View {
         TelemetryLineChartCard(
             title: "实时功耗曲线",
             systemImage: "chart.xyaxis.line",
-            help: "显示总功耗、CPU 功耗和 GPU 功耗随时间变化。峰值代表瞬时冲高，持续平台更接近长期稳定烤机功耗。",
+            help: "整机功耗使用系统负载读数，不含电池充电及充电器损耗。CPU/GPU 为独立估算，不能相加当作整机功耗。旧记录保留计算部分口径。",
             unit: "W",
             rows: rows,
             emptyTitle: "等待可用功耗样本",
             emptySystemImage: "bolt.badge.clock",
-            emptyDescription: "暂未取得有效功耗样本。请查看 Helper 状态；温度与风扇仍显示可读取的数据。"
+            emptyDescription: "暂未取得有效功耗样本。整机读数由系统提供，CPU/GPU 依赖 Helper；不支持的指标显示不可用。"
         )
     }
 }
@@ -805,11 +816,18 @@ enum TelemetryChartRows {
         knownGaps: [TelemetrySamplingGap]? = nil,
         sampleLimit: Int? = 360
     ) -> [TelemetryLineRow] {
-        rows(samples, definitions: [
-            MetricDefinition(name: L10n.t("总功耗"), value: { $0.totalDisplayedPowerW }),
-            MetricDefinition(name: "CPU", value: { $0.cpuPowerW }),
-            MetricDefinition(name: "GPU", value: { $0.gpuPowerW })
-        ], knownGaps: knownGaps, sampleLimit: sampleLimit)
+        var definitions: [MetricDefinition] = []
+        if samples.isEmpty || samples.contains(where: { $0.systemPower != nil }) {
+            definitions.append(MetricDefinition(name: L10n.t("整机功耗"), value: { $0.systemPower?.watts }))
+        }
+        if samples.contains(where: { $0.systemPower == nil }) {
+            definitions.append(MetricDefinition(name: L10n.t("计算部分功耗（旧记录）"), value: {
+                $0.systemPower == nil ? $0.computePowerW : nil
+            }))
+        }
+        definitions += [MetricDefinition(name: "CPU", value: { $0.cpuPowerW }),
+                        MetricDefinition(name: "GPU", value: { $0.gpuPowerW })]
+        return rows(samples, definitions: definitions, knownGaps: knownGaps, sampleLimit: sampleLimit)
     }
 
     static func coreTemperature(

@@ -523,14 +523,22 @@ struct MetricTile: View {
 
     private static func defaultHelp(for title: String) -> String? {
         switch title {
-        case "总/包功耗":
-            return "当前整机 SoC/封装侧功耗。优先使用 powermetrics 的 package power；如果系统只返回分项功耗，则用 CPU、GPU、ANE 等可读分项相加估算。"
+        case "整机功耗":
+            return "系统报告的电脑自身功耗，包含计算与其他部件，不含电池充电及充电器损耗。读数按硬件自身节奏刷新，不是插座电表实测；不可用时不会用 CPU/GPU 合计替代。"
+        case "整机峰值":
+            return "当前窗口或本次测试中记录到的最高整机功耗。它是采样峰值，不代表未采到的瞬时尖峰，也不是设备功率上限。"
+        case "整机持续":
+            return "最近 60 秒可用整机功耗读数的平均值；启动不足 60 秒时使用已有窗口。"
+        case "整机能耗":
+            return "对可用整机功耗按时间积分得到的估算能耗，单位 Wh；不包含电池充电及充电器损耗。"
+        case "计算部分峰值", "计算部分能耗":
+            return "旧记录仅统计计算部分功耗，不代表整机用电，不能与新版整机口径直接比较。"
         case "CPU 功耗":
             return "CPU 部分的实时功耗，来自 powermetrics。下方活跃度表示 CPU 在采样窗口内的忙碌比例，用来判断压力是否真正打满。"
         case "GPU 功耗":
             return "GPU 部分的实时功耗，来自 powermetrics。下方活跃度表示 Metal/图形相关 GPU 负载在采样窗口内的忙碌比例。"
         case "峰值功耗":
-            return "当前窗口或本次 Session 里记录到的最高总功耗。瞬时峰值会高于长期稳定功耗。"
+            return "当前窗口或本次测试的采样峰值；历史记录以标明的功耗口径为准。"
         case "持续功耗", "60 秒持续":
             return "最近 60 秒总功耗的滚动平均，更接近长时间烤机能稳定维持的功耗水平。"
         case "5 分钟持续":

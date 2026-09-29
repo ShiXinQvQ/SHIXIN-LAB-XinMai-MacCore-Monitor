@@ -202,10 +202,10 @@ struct SystemDataOverviewSection: View {
             columns: Array(repeating: GridItem(.flexible(minimum: minWidth), spacing: 12), count: columns),
             spacing: 12
         ) {
-            MetricTile(title: "总/包功耗", value: Formatters.watts(sample?.totalDisplayedPowerW), detail: sample?.source.rawValue ?? "等待采样", systemImage: "bolt.fill", tint: .yellow)
+            MetricTile(title: "整机功耗", value: Formatters.watts(sample?.totalDisplayedPowerW), detail: sample?.systemPowerDetail ?? "等待整机读数", systemImage: "bolt.fill", tint: .yellow)
             MetricTile(title: "CPU 功耗", value: Formatters.watts(sample?.cpuPowerW), detail: activityDetail(sample?.cpuActivePercent), systemImage: "cpu", tint: .green)
             MetricTile(title: "GPU 功耗", value: Formatters.watts(sample?.gpuPowerW), detail: activityDetail(sample?.gpuActivePercent), systemImage: "rectangle.3.group", tint: .blue)
-            MetricTile(title: "峰值功耗", value: Formatters.watts(rolling.peakPowerW), detail: rolling.peakDetail, systemImage: "chart.line.uptrend.xyaxis", tint: .orange)
+            MetricTile(title: "整机峰值", value: Formatters.watts(rolling.peakPowerW), detail: rolling.peakDetail, systemImage: "chart.line.uptrend.xyaxis", tint: .orange)
 
             MetricTile(title: "CPU 温度", value: Formatters.celsius(sample?.cpuTemperatureC), detail: sensorDetail(count: sample?.cpuTemperatureSensorCount), systemImage: "thermometer.high", tint: .red)
             MetricTile(title: "GPU 温度", value: Formatters.celsius(sample?.gpuTemperatureC), detail: sensorDetail(count: sample?.gpuTemperatureSensorCount), systemImage: "thermometer.medium", tint: .pink)
@@ -224,8 +224,8 @@ struct SystemDataOverviewSection: View {
 
             MetricTile(title: "E 核频率", value: Formatters.ghzFromMHz(sample?.eClusterFrequencyMHz), detail: "powermetrics", systemImage: "speedometer", tint: .mint)
             MetricTile(title: "GPU 频率", value: Formatters.ghzFromMHz(sample?.gpuFrequencyMHz), detail: "powermetrics", systemImage: "speedometer", tint: .blue)
-            MetricTile(title: "持续功耗", value: Formatters.watts(rolling.sustainedPower60sW), detail: "60 秒滚动平均", systemImage: "waveform.path.ecg", tint: .purple)
-            MetricTile(title: "估算能耗", value: Formatters.wh(rolling.estimatedEnergyWh), detail: rolling.energyDetail, systemImage: "battery.100percent.bolt", tint: .mint)
+            MetricTile(title: "整机持续", value: Formatters.watts(rolling.sustainedPower60sW), detail: "60 秒滚动平均", systemImage: "waveform.path.ecg", tint: .purple)
+            MetricTile(title: "整机能耗", value: Formatters.wh(rolling.estimatedEnergyWh), detail: rolling.energyDetail, systemImage: "battery.100percent.bolt", tint: .mint)
         }
     }
 

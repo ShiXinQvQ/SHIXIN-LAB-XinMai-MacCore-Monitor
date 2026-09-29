@@ -1123,3 +1123,28 @@
 "当前 Helper 的版本或二进制与本 App 不一致。更新后可确保后台采样与 App 来自同一构建。" = "The installed Helper version or binary differs from this app. Update Helper to use the matching build.";
 
 "暂未取得有效功耗样本。请查看 Helper 状态；温度与风扇仍显示可读取的数据。" = "No valid power samples yet. Check Helper status; available temperature and fan readings are still shown.";
+
+// Whole-machine power scope (0.3.2)
+"整机功耗" = "System Power";
+"整机峰值" = "System Peak Power";
+"整机持续" = "Sustained System Power";
+"整机能耗" = "System Energy";
+"计算部分功耗（旧记录）" = "Compute Power (Legacy)";
+"计算部分峰值" = "Compute Peak Power";
+"计算部分能耗" = "Compute Energy";
+"系统负载 · 不含电池充电" = "System load · excludes battery charging";
+"整机读数不可用" = "System reading unavailable";
+"等待整机读数" = "Waiting for system power";
+"功耗口径不同，不计算差值" = "Different power scopes; no delta";
+"系统报告的电脑自身功耗，包含计算与其他部件，不含电池充电及充电器损耗。读数按硬件自身节奏刷新，不是插座电表实测；不可用时不会用 CPU/GPU 合计替代。" = "System-reported computer power, including compute and other components, excluding battery charging and adapter losses. Hardware controls the refresh rate. This is not a wall-meter measurement; missing values are never replaced with CPU/GPU sums.";
+"当前窗口或本次测试中记录到的最高整机功耗。它是采样峰值，不代表未采到的瞬时尖峰，也不是设备功率上限。" = "Highest system power recorded in this window or test. This sampled peak is neither an unobserved instantaneous spike nor the device power limit.";
+"最近 60 秒可用整机功耗读数的平均值；启动不足 60 秒时使用已有窗口。" = "Average available system power over the last 60 seconds, or the available window after startup.";
+"对可用整机功耗按时间积分得到的估算能耗，单位 Wh；不包含电池充电及充电器损耗。" = "Estimated energy in Wh integrated from available system power, excluding battery charging and adapter losses.";
+"旧记录仅统计计算部分功耗，不代表整机用电，不能与新版整机口径直接比较。" = "Legacy records cover computing components, not whole-system consumption, and cannot be directly compared with new system-power records.";
+"当前窗口或本次测试的采样峰值；历史记录以标明的功耗口径为准。" = "Sampled peak in this window or test; use the indicated power scope for historical records.";
+"整机功耗使用系统负载读数，不含电池充电及充电器损耗。CPU/GPU 为独立估算，不能相加当作整机功耗。旧记录保留计算部分口径。" = "System power uses the system load reading, excluding battery charging and adapter losses. CPU/GPU estimates do not sum to system power. Legacy records retain their compute-only scope.";
+"暂未取得有效功耗样本。整机读数由系统提供，CPU/GPU 依赖 Helper；不支持的指标显示不可用。" = "No valid power samples yet. System power comes from macOS; CPU/GPU readings require the Helper. Unsupported metrics are unavailable.";
+
+"该判断比较测试前段与后段的计算部分功耗、P 核频率、GPU 频率、综合温度、macOS 热状态和降级样本比例。它是趋势提示，不是实验室绝对结论。" = "Compares early and late compute power, P-core/GPU frequency, temperature, thermal state and degraded samples. This is a trend indicator, not a laboratory conclusion.";
+
+"系统负载 · 硬件低频更新" = "System load · slow hardware refresh";

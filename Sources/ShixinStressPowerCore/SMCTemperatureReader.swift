@@ -108,6 +108,12 @@ enum SMCTemperatureReader {
         )
     }
 
+    /// SMC's whole-system power channel (watts), not PDTR charger input.
+    /// Reuse the existing read-only client; each invocation owns its connection.
+    static func readSystemPowerW() -> Double? {
+        SMCReadClient()?.readValue(forKey: "PSTR")
+    }
+
     static func debugSummary() -> String {
         guard let client = SMCReadClient() else {
             return "SMC open failed"

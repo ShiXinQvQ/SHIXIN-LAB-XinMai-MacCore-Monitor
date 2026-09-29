@@ -96,6 +96,7 @@ public struct TelemetrySample: Identifiable, Codable {
     public var gpuPowerW: Double?
     public var anePowerW: Double?
     public var packagePowerW: Double?
+    public var systemPower: SystemPowerReading?
     public var cpuActivePercent: Double?
     public var gpuActivePercent: Double?
     public var eClusterFrequencyMHz: Double?
@@ -196,7 +197,17 @@ public struct TelemetrySample: Identifiable, Codable {
         self.samplingIntervalMilliseconds = samplingIntervalMilliseconds
     }
 
+    public var powerScope: PowerMeasurementScope {
+        systemPower == nil ? .legacyCompute : .wholeMachine
+    }
+
     public var totalDisplayedPowerW: Double? {
+        if let systemPower { return systemPower.watts }
+        return computePowerW
+    }
+
+    /// Kept for legacy archives and compute-only thermal stability analysis.
+    public var computePowerW: Double? {
         if let packagePowerW { return packagePowerW }
         let parts = [cpuPowerW, gpuPowerW, anePowerW].compactMap { $0 }
         guard !parts.isEmpty else { return nil }
@@ -369,6 +380,11 @@ public struct StressSessionSummary: Identifiable, Codable {
     public var logMessages: [String]
     public var samples: [TelemetrySample]
 
+    public var powerScope: PowerMeasurementScope {
+        (sessionSchemaVersion ?? 0) >= 4 || samples.contains(where: { $0.systemPower != nil })
+            ? .wholeMachine : .legacyCompute
+    }
+
     public var validatedSustainedPower60sW: Double? {
         durationSeconds >= 60 * 0.95 ? sustainedPower60sW : nil
     }
@@ -396,8 +412,17 @@ public struct LiveSession: Identifiable {
         Date().timeIntervalSince(startedAt)
     }
 
+    public var powerScope: PowerMeasurementScope {
+        samples.isEmpty || samples.contains(where: { $0.systemPower != nil }) ? .wholeMachine : .legacyCompute
+    }
+
+    private var powerSamples: [TelemetrySample] {
+        let scope = powerScope
+        return samples.filter { $0.powerScope == scope }
+    }
+
     public var peakPowerW: Double? {
-        samples.compactMap(\.totalDisplayedPowerW).max()
+        powerSamples.compactMap(\.totalDisplayedPowerW).max()
     }
 
     public var peakCPUPowerW: Double? {
@@ -511,7 +536,7 @@ public struct LiveSession: Identifiable {
             fullSampleCSVPath: fullSampleCSVPath,
             fullSampleCSVRelativePath: fullSampleCSVRelativePath,
             fullSampleCSVSampleCount: fullSampleCSVSampleCount,
-            sessionSchemaVersion: 3,
+            sessionSchemaVersion: powerScope == .wholeMachine ? 4 : 3,
             environmentSnapshot: environmentSnapshot,
             curveArchiveMetadata: curveArchive.metadata,
             performanceReport: report,
@@ -534,7 +559,7 @@ public struct LiveSession: Identifiable {
     }
 
     private var powerPoints: [(date: Date, watts: Double)] {
-        samples.compactMap { sample in
+        powerSamples.compactMap { sample in
             guard let power = sample.totalDisplayedPowerW,
                   power.isFinite,
                   power >= 0 else {
@@ -554,10 +579,14 @@ public struct LiveSession: Identifiable {
         let maximumGap = maximumTrustedPowerGap(points: points)
         var joules = 0.0
         var coveredSeconds = 0.0
+        let missingDates = powerSamples.filter { $0.totalDisplayedPowerW == nil }.map(\.capturedAt).sorted()
+        var missingIndex = 0
 
         for index in 1..<points.count {
             let previous = points[index - 1]
             let current = points[index]
+            while missingIndex < missingDates.count, missingDates[missingIndex] <= previous.date { missingIndex += 1 }
+            if missingIndex < missingDates.count, missingDates[missingIndex] < current.date { continue }
             let fullDuration = current.date.timeIntervalSince(previous.date)
             guard fullDuration > 0, fullDuration <= maximumGap else { continue }
 

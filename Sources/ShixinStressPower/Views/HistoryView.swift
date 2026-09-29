@@ -148,7 +148,7 @@ struct SessionRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                Text("\(L10n.t("峰值")) \(Formatters.watts(session.peakPowerW)) · \(L10n.t(session.stopReason.rawValue))")
+                Text("\(L10n.t(session.powerScope.peakTitle)) \(Formatters.watts(session.peakPowerW)) · \(L10n.t(session.stopReason.rawValue))")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -224,10 +224,10 @@ struct SessionCompareView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 12)], spacing: 12) {
                 CompareMetricCard.text(title: "模式", a: sessionA.configuration.mode.title, b: sessionB.configuration.mode.title, systemImage: "flame.fill", tint: .orange)
                 CompareMetricCard.numeric(title: "持续时间", a: sessionA.durationSeconds, b: sessionB.durationSeconds, unit: "s", decimals: 0, display: { $0.map(Formatters.seconds) ?? "不可用" }, systemImage: "timer", tint: .cyan)
-                CompareMetricCard.numeric(title: "峰值功耗", a: sessionA.peakPowerW, b: sessionB.peakPowerW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "bolt.fill", tint: .yellow)
-                CompareMetricCard.numeric(title: "60 秒持续", a: sessionA.validatedSustainedPower60sW, b: sessionB.validatedSustainedPower60sW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "waveform.path.ecg", tint: .purple)
-                CompareMetricCard.numeric(title: "5 分钟持续", a: sessionA.validatedSustainedPower300sW, b: sessionB.validatedSustainedPower300sW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "gauge.with.dots.needle.67percent", tint: .blue)
-                CompareMetricCard.numeric(title: "估算能耗", a: sessionA.estimatedEnergyWh, b: sessionB.estimatedEnergyWh, unit: "Wh", decimals: 2, display: Formatters.wh, systemImage: "battery.100percent.bolt", tint: .mint)
+                CompareMetricCard.numeric(title: "峰值功耗", a: sessionA.peakPowerW, b: sessionB.peakPowerW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "bolt.fill", tint: .yellow, comparable: sessionA.powerScope == sessionB.powerScope)
+                CompareMetricCard.numeric(title: "60 秒持续", a: sessionA.validatedSustainedPower60sW, b: sessionB.validatedSustainedPower60sW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "waveform.path.ecg", tint: .purple, comparable: sessionA.powerScope == sessionB.powerScope)
+                CompareMetricCard.numeric(title: "5 分钟持续", a: sessionA.validatedSustainedPower300sW, b: sessionB.validatedSustainedPower300sW, unit: "W", decimals: 1, display: Formatters.watts, systemImage: "gauge.with.dots.needle.67percent", tint: .blue, comparable: sessionA.powerScope == sessionB.powerScope)
+                CompareMetricCard.numeric(title: "估算能耗", a: sessionA.estimatedEnergyWh, b: sessionB.estimatedEnergyWh, unit: "Wh", decimals: 2, display: Formatters.wh, systemImage: "battery.100percent.bolt", tint: .mint, comparable: sessionA.powerScope == sessionB.powerScope)
                 CompareMetricCard.numeric(title: "CPU 峰值温度", a: sessionA.peakCPUTemperatureC, b: sessionB.peakCPUTemperatureC, unit: "°C", decimals: 1, display: Formatters.celsius, systemImage: "thermometer.high", tint: .red)
                 CompareMetricCard.numeric(title: "GPU 峰值温度", a: sessionA.peakGPUTemperatureC, b: sessionB.peakGPUTemperatureC, unit: "°C", decimals: 1, display: Formatters.celsius, systemImage: "thermometer.medium", tint: .pink)
                 CompareMetricCard.numeric(title: "芯片峰值温度", a: sessionA.peakSoCTemperatureC, b: sessionB.peakSoCTemperatureC, unit: "°C", decimals: 1, display: Formatters.celsius, systemImage: "sensor.tag.radiowaves.forward", tint: .teal)
@@ -287,6 +287,9 @@ struct CompareSessionHeaderCard: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
+            Text(L10n.t(session.powerScope.title))
+                .font(.caption)
+                .foregroundStyle(.secondary)
             Text(L10n.t(session.stopReason.rawValue))
                 .font(.caption)
                 .foregroundStyle(.tertiary)
@@ -352,9 +355,10 @@ struct CompareMetricCard: View {
         display: (Double?) -> String,
         bDisplay: String? = nil,
         systemImage: String,
-        tint: Color
+        tint: Color,
+        comparable: Bool = true
     ) -> CompareMetricCard {
-        let delta = deltaText(a: a, b: b, unit: unit, decimals: decimals)
+        let delta = comparable ? deltaText(a: a, b: b, unit: unit, decimals: decimals) : L10n.t("功耗口径不同，不计算差值")
         return CompareMetricCard(
             title: title,
             aText: display(a),
@@ -486,9 +490,9 @@ struct SessionDetail: View {
     private var sessionMetricTiles: some View {
         MetricTile(title: "模式", value: session.configuration.mode.title, detail: "Stress Mode", systemImage: session.configuration.mode.systemImage, tint: .orange)
         MetricTile(title: "持续时间", value: Formatters.seconds(session.durationSeconds), detail: session.stopReason.rawValue, systemImage: "timer", tint: .cyan)
-        MetricTile(title: "峰值功耗", value: Formatters.watts(session.peakPowerW), detail: "Peak Power", systemImage: "bolt.fill", tint: .yellow)
-        MetricTile(title: "60 秒持续", value: Formatters.watts(session.validatedSustainedPower60sW), detail: "Rolling Average", systemImage: "waveform.path.ecg", tint: .purple)
-        MetricTile(title: "估算能耗", value: Formatters.wh(session.estimatedEnergyWh), detail: "Energy Estimate", systemImage: "battery.100percent.bolt", tint: .mint)
+        MetricTile(title: session.powerScope.peakTitle, value: Formatters.watts(session.peakPowerW), detail: session.powerScope.title, systemImage: "bolt.fill", tint: .yellow)
+        MetricTile(title: "60 秒持续", value: Formatters.watts(session.validatedSustainedPower60sW), detail: session.powerScope.title, systemImage: "waveform.path.ecg", tint: .purple)
+        MetricTile(title: session.powerScope.energyTitle, value: Formatters.wh(session.estimatedEnergyWh), detail: session.powerScope.title, systemImage: "battery.100percent.bolt", tint: .mint)
         MetricTile(title: "CPU 峰值温度", value: Formatters.celsius(session.peakCPUTemperatureC), detail: "CPU Peak", systemImage: "thermometer.high", tint: .red)
         MetricTile(title: "GPU 峰值温度", value: Formatters.celsius(session.peakGPUTemperatureC), detail: "GPU Peak", systemImage: "thermometer.medium", tint: .pink)
         MetricTile(title: "芯片峰值温度", value: Formatters.celsius(session.peakSoCTemperatureC), detail: "SoC Peak", systemImage: "sensor.tag.radiowaves.forward", tint: .teal)
@@ -695,7 +699,7 @@ struct StabilityDetailStrip: View {
             SectionHeader(
                 title: "持续性能释放稳定程度",
                 systemImage: "speedometer",
-                help: "该判断比较测试前段与后段的总功耗、P 核频率、GPU 频率、综合温度、macOS 热状态和降级样本比例。它是趋势提示，不是实验室绝对结论。"
+                help: "该判断比较测试前段与后段的计算部分功耗、P 核频率、GPU 频率、综合温度、macOS 热状态和降级样本比例。它是趋势提示，不是实验室绝对结论。"
             )
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 8)], spacing: 8) {
                 compactMetric("功耗回落", percent(report.stability.powerDropPercent))
