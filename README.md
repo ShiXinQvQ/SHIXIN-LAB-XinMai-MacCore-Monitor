@@ -107,7 +107,8 @@ up, sustains work, throttles, recovers, and reconnects.
 - Approximately 0.5-second source sampling with high-frequency metric updates
   and six curve groups presented at an efficient visual cadence.
 - Layered read-only data paths using macOS `powermetrics`, AppleSMC / HID, and
-  `smartctl` or `diskutil` when available.
+  `smartctl` or `diskutil` when available. Disk temperature is read by the app
+  itself, without elevated privileges.
 - Explicit freshness and sequence checks so a running process is not mistaken
   for healthy telemetry.
 
@@ -176,6 +177,7 @@ The Helper:
 
 - accepts only fixed local `ping` and `sample` requests;
 - does not accept arbitrary shell commands, arguments, or paths;
+- launches no tool other than `/usr/bin/powermetrics`; it never runs `smartctl`;
 - does not access the network;
 - does not write user data or perform disk repair, erase, format, mount, or
   unmount operations;
@@ -212,11 +214,14 @@ swift run -c release ShixinStressPowerSelfTest --core-only
 Scripts/build-app.sh
 ```
 
-`Scripts/build-app.sh` creates the app under:
+`Scripts/build-app.sh` creates the app inside the project, so a development
+build never replaces the installed app:
 
 ```text
-~/Applications/SHIXIN LAB · 「芯脉」.app
+Dist/Development/SHIXIN LAB · 「芯脉」.app
 ```
+
+Set `SHIXIN_APP_INSTALL_DIR` to build into another folder.
 
 The build only bundles `smartctl` when an explicit executable source is
 provided. A distributable build that includes `smartctl` must also include
@@ -328,7 +333,7 @@ DMG 内附正式中英双语安装说明、版权与开源许可说明、第三�
 - 功耗、CPU/GPU/SoC 温度、频率、负载、风扇、热状态、存储背景与采样健康。
 - 约 0.5 秒级原始采样，数值卡高频更新，六组曲线按高效节奏连续呈现。
 - 通过 macOS `powermetrics`、AppleSMC / HID，以及可用时的 `smartctl` 或
-  `diskutil` 构成分层只读数据路径。
+  `diskutil` 构成分层只读数据路径。硬盘温度由 App 以普通权限读取。
 - 同时检查样本新鲜度与序列推进，避免把“进程仍在”误判成“遥测健康”。
 
 #### 受控压力
@@ -396,6 +401,7 @@ Helper：
 
 - 只接受固定的本机 `ping` 与 `sample` 请求；
 - 不接受任意 shell、命令参数或路径；
+- 除 `/usr/bin/powermetrics` 外不启动任何工具，也不运行 `smartctl`；
 - 不访问网络；
 - 不写入用户数据，也不执行磁盘修复、擦除、格式化、挂载或卸载操作；
 - 无采样请求后停止持续采样并待机。
@@ -429,11 +435,13 @@ swift run -c release ShixinStressPowerSelfTest --core-only
 Scripts/build-app.sh
 ```
 
-`Scripts/build-app.sh` 默认把 App 生成到：
+`Scripts/build-app.sh` 默认把 App 生成在项目内，开发构建不会替换已安装的 App：
 
 ```text
-~/Applications/SHIXIN LAB · 「芯脉」.app
+Dist/Development/SHIXIN LAB · 「芯脉」.app
 ```
+
+如需生成到其他位置，请设置 `SHIXIN_APP_INSTALL_DIR`。
 
 构建流程只会在明确指定可执行文件来源时附带 `smartctl`。若发行包包含
 `smartctl`，还必须同时提供对应 smartmontools 源码归档和许可证材料。

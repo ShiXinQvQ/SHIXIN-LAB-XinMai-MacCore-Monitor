@@ -3,6 +3,7 @@
 
 import Darwin
 import Foundation
+import IOKit.ps
 
 public actor TelemetrySampler {
     private let intervalMilliseconds: Int
@@ -28,6 +29,7 @@ public actor TelemetrySampler {
                     )
                 }
                 applyKernelCPUActivity(to: &sample)
+                Self.applyLocalStorageTemperature(StorageTemperatureReader.cachedReading(), to: &sample)
                 return sample
             } catch {
                 helperFailure = error
@@ -37,7 +39,11 @@ public actor TelemetrySampler {
         let powerSource = PowerSourceReader.read()
         let thermalState = ThermalStateReader.current()
         let hidTemperatures = HIDTemperatureReader.read()
-        let storageTemperature = StorageTemperatureReader.read()
+        // The app never waits on a disk query; a one-shot root sample (the
+        // Helper's --sample diagnostic) has no later poll to pick up a refresh.
+        let storageTemperature = geteuid() == 0
+            ? StorageTemperatureReader.read()
+            : StorageTemperatureReader.cachedReading()
 
         guard geteuid() == 0 else {
             let helperMessage = helperFailure.map { "Helper 不可用：\($0.localizedDescription)。" } ?? ""
@@ -178,6 +184,15 @@ public actor TelemetrySampler {
         sample.wifiTemperatureC = hidTemperatures.wifiTemperatureC
         sample.airflowTemperatureC = hidTemperatures.airflowTemperatureC
         sample.ambientTemperatureC = hidTemperatures.ambientTemperatureC
+    }
+
+    /// The app reads the disk temperature itself; it needs no root privileges.
+    /// A local reading wins. A reading from an older Helper is kept only while
+    /// the app has none of its own yet.
+    static func applyLocalStorageTemperature(_ storage: StorageTemperatureSnapshot, to sample: inout TelemetrySample) {
+        guard storage.diskTemperatureC != nil || sample.diskTemperatureC == nil else { return }
+        sample.diskTemperatureC = storage.diskTemperatureC
+        sample.diskTemperatureSourceDetail = storage.sourceDetail
     }
 
     private func applyKernelCPUActivity(to sample: inout TelemetrySample) {
@@ -530,51 +545,44 @@ enum PowerSourceReader {
     }
 
     private static func readUncached() -> PowerSourceSnapshot {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
-        process.arguments = ["-g", "batt"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-        do {
-            try process.run()
-            let deadline = Date().addingTimeInterval(1.5)
-            while process.isRunning, Date() < deadline {
-                Thread.sleep(forTimeInterval: 0.02)
-            }
-            if process.isRunning {
-                process.terminate()
-                let terminationDeadline = Date().addingTimeInterval(0.25)
-                while process.isRunning, Date() < terminationDeadline {
-                    Thread.sleep(forTimeInterval: 0.02)
-                }
-                if process.isRunning {
-                    kill(process.processIdentifier, SIGKILL)
-                }
-                return .unknown
-            }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let text = String(data: data, encoding: .utf8) ?? ""
-            return parse(text)
-        } catch {
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else {
             return .unknown
         }
+        let providingType = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() as String?
+        var descriptions: [[String: Any]] = []
+        if let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] {
+            for source in sources {
+                if let description = IOPSGetPowerSourceDescription(info, source)?.takeUnretainedValue() as? [String: Any] {
+                    descriptions.append(description)
+                }
+            }
+        }
+        return snapshot(providingType: providingType, sources: descriptions)
     }
 
-    private static func parse(_ text: String) -> PowerSourceSnapshot {
-        let firstLine = text.components(separatedBy: .newlines).first ?? ""
+    /// Maps IOKit power-source data (key names from IOPSKeys.h) to the snapshot
+    /// the app shows. Reading IOKit directly replaces launching `pmset`, so the
+    /// Helper starts no short-lived child processes while it samples.
+    static func snapshot(providingType: String?, sources: [[String: Any]]) -> PowerSourceSnapshot {
         let source: String
-        if firstLine.contains("AC Power") {
+        switch providingType {
+        case "AC Power":
             source = "电源适配器"
-        } else if firstLine.contains("Battery Power") {
+        case "Battery Power":
             source = "电池"
-        } else {
+        default:
             source = "未知"
         }
 
-        let percent = text.firstMatch(pattern: #"(\d+)%"#).flatMap(Int.init)
-        let lower = text.lowercased()
-        let charging = lower.contains("charging") && !lower.contains("not charging")
+        let battery = sources.first { ($0["Type"] as? String) == "InternalBattery" }
+        var percent: Int?
+        if let battery,
+           let current = (battery["Current Capacity"] as? NSNumber)?.doubleValue,
+           let maximum = (battery["Max Capacity"] as? NSNumber)?.doubleValue,
+           maximum > 0 {
+            percent = Int((current / maximum * 100).rounded())
+        }
+        let charging = (battery?["Is Charging"] as? Bool) ?? false
         return PowerSourceSnapshot(source: source, batteryPercent: percent, isCharging: charging, adapterWatts: nil)
     }
 }
@@ -597,17 +605,5 @@ extension Array where Element == Double {
     func average() -> Double? {
         guard !isEmpty else { return nil }
         return reduce(0, +) / Double(count)
-    }
-}
-
-extension String {
-    func firstMatch(pattern: String) -> String? {
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: self, range: NSRange(startIndex..., in: self)),
-              match.numberOfRanges > 1,
-              let range = Range(match.range(at: 1), in: self) else {
-            return nil
-        }
-        return String(self[range])
     }
 }

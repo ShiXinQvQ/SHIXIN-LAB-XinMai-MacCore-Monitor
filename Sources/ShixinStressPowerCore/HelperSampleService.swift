@@ -29,16 +29,20 @@ public struct HelperSamplingHealth: Codable, Equatable {
 final class HelperSampleService: @unchecked Sendable {
     static let intervalMilliseconds = 500
     private static let idleTimeout: TimeInterval = 5
+    /// Descriptor failures do not heal inside a running process. After this
+    /// many in a row the Helper exits and launchd starts a fresh instance,
+    /// which is what the manual "repair Helper" action used to do.
+    private static let descriptorFailureRestartLimit = 3
+    private static let restartExitCode: Int32 = 75 // EX_TEMPFAIL
 
     private let stateLock = NSLock()
     private let demandCondition = NSCondition()
-    private let processTerminationLock = NSLock()
     private let streamQueue = DispatchQueue(label: "com.shixinqvq.shixinlab.macstresspower.helper.powermetrics", qos: .utility)
     private let sensorQueue = DispatchQueue(label: "com.shixinqvq.shixinlab.macstresspower.helper.sensors", qos: .utility)
 
     private var started = false
     private var stopped = false
-    private var process: Process?
+    private var stream: ChildProcessStream?
     private var latestSample: TelemetrySample?
     private var latestSampleUptime: TimeInterval?
     private var lastStoredCapturedAt: Date?
@@ -47,8 +51,12 @@ final class HelperSampleService: @unchecked Sendable {
     private var lastError: String?
     private var lastDemandUptime: TimeInterval?
     private var temperatures: HIDTemperatureSnapshot?
-    private var storage = StorageTemperatureSnapshot.unavailable
+    /// The Helper no longer reads the disk temperature: it needs no root
+    /// privileges, and launching smartctl as root was unsafe. The app fills it in.
+    private let storage = StorageTemperatureSnapshot.unavailable
     private var powerSource = PowerSourceSnapshot.unknown
+    /// Touched only by the powermetrics stream thread.
+    private var consecutiveDescriptorFailures = 0
 
     func start() {
         stateLock.lock()
@@ -71,11 +79,12 @@ final class HelperSampleService: @unchecked Sendable {
         demandCondition.lock()
         stateLock.lock()
         stopped = true
-        let process = process
+        let stream = stream
         stateLock.unlock()
         demandCondition.broadcast()
         demandCondition.unlock()
-        terminate(process)
+        // Only signal here; the stream thread reaps the child and closes the pipe.
+        stream?.requestTermination()
     }
 
     func health() -> HelperSamplingHealth {
@@ -157,6 +166,9 @@ final class HelperSampleService: @unchecked Sendable {
             setSamplingState(currentSequence == 0 ? "starting" : "restarting", error: nil)
             do {
                 let parsedCount = try runContinuousPowermetrics()
+                if parsedCount > 0 {
+                    consecutiveDescriptorFailures = 0
+                }
                 if isStopped { return }
                 if !isDemandActive {
                     setIdleState()
@@ -168,78 +180,88 @@ final class HelperSampleService: @unchecked Sendable {
             } catch {
                 if isStopped { return }
                 setSamplingState("restarting", error: error.localizedDescription)
+                recordStreamFailure(error)
                 retryDelay = min(5, retryDelay * 2)
             }
             Thread.sleep(forTimeInterval: retryDelay)
         }
     }
 
+    private func recordStreamFailure(_ error: Error) {
+        Self.log("powermetrics stream failed: \(error.localizedDescription)")
+        guard Self.isDescriptorFailure(error) else {
+            consecutiveDescriptorFailures = 0
+            return
+        }
+        consecutiveDescriptorFailures += 1
+        if consecutiveDescriptorFailures >= Self.descriptorFailureRestartLimit {
+            Self.log("exiting after \(consecutiveDescriptorFailures) consecutive descriptor failures; launchd will start a fresh Helper")
+            exit(Self.restartExitCode)
+        }
+    }
+
+    static func isDescriptorFailure(_ error: Error) -> Bool {
+        let descriptorCodes: Set<Int32> = [EBADF, EMFILE, ENFILE]
+        switch error {
+        case HelperSampleServiceError.invalidStreamDescriptor:
+            return true
+        case HelperSampleServiceError.streamReadFailed(_, let code):
+            return descriptorCodes.contains(code)
+        case let error as ChildProcessStreamError:
+            return descriptorCodes.contains(error.code)
+        default:
+            return false
+        }
+    }
+
+    private static func log(_ message: String) {
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+        fputs("\(timestamp) \(message)\n", stderr)
+    }
+
     private func runContinuousPowermetrics() throws -> Int {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/powermetrics")
-        process.arguments = [
-            "-n", "-1",
-            "-b", "0",
-            "-i", String(Self.intervalMilliseconds),
-            "--samplers", "cpu_power,gpu_power,thermal,ane_power",
-            "--show-extra-power-info",
-            "--handle-invalid-values",
-            "-f", "plist"
-        ]
-
-        let stdout = Pipe()
-        let readHandle = stdout.fileHandleForReading
-        let writeHandle = stdout.fileHandleForWriting
-        process.standardOutput = stdout
-        process.standardError = FileHandle.standardError
-
-        // Process/Pipe owns its descriptors and may close them asynchronously while a
-        // terminated child is being reaped. Keep an independent descriptor for poll/read
-        // so a previous powermetrics teardown cannot invalidate a newly reused fd.
-        let descriptor = Darwin.dup(readHandle.fileDescriptor)
-        guard descriptor >= 0 else {
-            throw HelperSampleServiceError.streamSetupFailed(errnoText)
-        }
-        guard Darwin.fcntl(descriptor, F_SETFD, FD_CLOEXEC) == 0 else {
-            let message = errnoText
-            Darwin.close(descriptor)
-            throw HelperSampleServiceError.streamSetupFailed(message)
-        }
-
+        guard !isStopped, isDemandActive else { return 0 }
+        let stream = try ChildProcessStream(
+            executable: "/usr/bin/powermetrics",
+            arguments: [
+                "-n", "-1",
+                "-b", "0",
+                "-i", String(Self.intervalMilliseconds),
+                "--samplers", "cpu_power,gpu_power,thermal,ane_power",
+                "--show-extra-power-info",
+                "--handle-invalid-values",
+                "-f", "plist"
+            ]
+        )
         stateLock.lock()
-        self.process = process
+        self.stream = stream
         stateLock.unlock()
-        var didLaunch = false
         defer {
-            terminate(process, waitForExit: didLaunch)
-            Darwin.close(descriptor)
-            try? readHandle.close()
-            try? writeHandle.close()
+            stream.finish()
             stateLock.lock()
-            if self.process === process {
-                self.process = nil
+            if self.stream === stream {
+                self.stream = nil
             }
             stateLock.unlock()
         }
 
-        guard !isStopped, isDemandActive else { return 0 }
-        try process.run()
-        didLaunch = true
-        // Only the child needs the write end. The helper reads through its duplicated fd.
-        try? writeHandle.close()
-        try? readHandle.close()
+        let descriptor = stream.readDescriptor
         var pending = Data()
         var parsedCount = 0
         var lastDataUptime = systemUptime
 
-        while !isStopped, isDemandActive, process.isRunning {
+        while !isStopped, isDemandActive {
             var pollDescriptor = pollfd(fd: descriptor, events: Int16(POLLIN | POLLHUP | POLLERR), revents: 0)
             let pollResult = Darwin.poll(&pollDescriptor, 1, 1_000)
             if pollResult < 0 {
-                if errno == EINTR { continue }
-                throw HelperSampleServiceError.streamReadFailed(errnoText)
+                let code = errno
+                if code == EINTR { continue }
+                throw HelperSampleServiceError.streamReadFailed(String(cString: strerror(code)), code)
             }
             if pollResult == 0 {
+                if stream.hasExited() {
+                    break
+                }
                 if systemUptime - lastDataUptime > 3 {
                     throw HelperSampleServiceError.streamTimedOut
                 }
@@ -258,8 +280,11 @@ final class HelperSampleService: @unchecked Sendable {
                     parsedCount += consumePlistChunks(from: &pending)
                 } else if count == 0 {
                     break
-                } else if errno != EINTR && errno != EAGAIN {
-                    throw HelperSampleServiceError.streamReadFailed(errnoText)
+                } else {
+                    let code = errno
+                    if code != EINTR && code != EAGAIN {
+                        throw HelperSampleServiceError.streamReadFailed(String(cString: strerror(code)), code)
+                    }
                 }
             }
             if (pollDescriptor.revents & Int16(POLLHUP | POLLERR)) != 0,
@@ -330,17 +355,14 @@ final class HelperSampleService: @unchecked Sendable {
             }
             let cycleStarted = systemUptime
             let temperatures = HIDTemperatureReader.read()
-            var storage: StorageTemperatureSnapshot?
             var powerSource: PowerSourceSnapshot?
             if cycleStarted - lastSlowRefreshUptime >= 5 {
-                storage = StorageTemperatureReader.read()
                 powerSource = PowerSourceReader.read()
                 lastSlowRefreshUptime = cycleStarted
             }
 
             stateLock.lock()
             self.temperatures = temperatures
-            if let storage { self.storage = storage }
             if let powerSource { self.powerSource = powerSource }
             stateLock.unlock()
 
@@ -475,10 +497,6 @@ final class HelperSampleService: @unchecked Sendable {
         ProcessInfo.processInfo.systemUptime
     }
 
-    private var errnoText: String {
-        String(cString: strerror(errno))
-    }
-
     private func appendMessage(_ message: String, to sample: inout TelemetrySample) {
         if let existing = sample.message, !existing.isEmpty {
             sample.message = "\(existing)\n\(message)"
@@ -487,48 +505,24 @@ final class HelperSampleService: @unchecked Sendable {
         }
     }
 
-    private func terminate(_ process: Process?, waitForExit: Bool = false) {
-        guard let process else { return }
-        processTerminationLock.lock()
-        defer { processTerminationLock.unlock() }
-
-        let wasRunning = process.isRunning
-        if wasRunning {
-            process.terminate()
-            let deadline = Date().addingTimeInterval(0.5)
-            while process.isRunning, Date() < deadline {
-                Thread.sleep(forTimeInterval: 0.02)
-            }
-            if process.isRunning {
-                kill(process.processIdentifier, SIGKILL)
-            }
-        }
-        if waitForExit || wasRunning {
-            process.waitUntilExit()
-        }
-    }
-
     deinit {
         stop()
     }
 }
 
-private enum HelperSampleServiceError: LocalizedError {
-    case streamSetupFailed(String)
+enum HelperSampleServiceError: LocalizedError {
     case streamTimedOut
     case invalidStreamDescriptor
-    case streamReadFailed(String)
+    case streamReadFailed(String, Int32)
     case noSamples
 
     var errorDescription: String? {
         switch self {
-        case .streamSetupFailed(let message):
-            return "powermetrics 常驻流管道创建失败：\(message)"
         case .streamTimedOut:
             return "powermetrics 常驻流超过 3 秒没有新数据"
         case .invalidStreamDescriptor:
             return "powermetrics 常驻流管道已失效"
-        case .streamReadFailed(let message):
+        case .streamReadFailed(let message, _):
             return "powermetrics 常驻流读取失败：\(message)"
         case .noSamples:
             return "powermetrics 常驻流未产生有效样本"
