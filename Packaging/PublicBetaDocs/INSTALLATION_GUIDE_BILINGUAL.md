@@ -1,6 +1,6 @@
 # SHIXIN LAB · 「芯脉」
 ## 安装与使用说明 | Installation & Usage Guide
-版本 0.3.3-beta · 构建 303 · Apple Silicon Mac · macOS 15+
+版本 0.3.4-beta · 构建 304 · Apple Silicon Mac · macOS 15+
 
 ---
 
@@ -14,7 +14,7 @@ SHIXIN LAB · 「芯脉」 MacCore Monitor 是面向 Apple Silicon Mac 的原生
 
 ## 发行包内容
 
-- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.3-beta，构建 303。
+- **SHIXIN LAB · 「芯脉」.app**：主程序，版本 0.3.4-beta，构建 304。
 - **Applications**：将 App 拖入此快捷方式即可安装到“应用程序”。
 - **安装与使用说明**：本双语文档。
 - **版权、开源许可与第三方声明**：GPL-3.0-or-later、版权、品牌资产、商标与责任边界。
@@ -53,7 +53,7 @@ Helper 组件位置：
 - /Library/LaunchDaemons/com.shixinqvq.shixinlab.macstresspower.helper.plist
 - /var/run/com.shixinqvq.shixinlab.macstresspower.helper.sock
 
-安装成功后，权限页应显示 Helper 版本 `0.3.0-helper`。若提示版本不一致，请使用同一页面的更新功能。
+安装成功后，权限页应显示 Helper 版本 `0.3.4-helper`。若提示版本不一致，请使用同一页面的更新功能。
 
 ## 使用要点
 
@@ -110,7 +110,7 @@ Power, frequency, and thermal state are primarily provided by macOS powermetrics
 
 ## What Is Included
 
-- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.3-beta, build 303.
+- **SHIXIN LAB · 「芯脉」.app**: the main app, version 0.3.4-beta, build 304.
 - **Applications**: drag the app onto this shortcut to install it in Applications.
 - **Installation & Usage Guide**: this bilingual document.
 - **Copyright, Open Source License & Third-Party Notices**: GPL-3.0-or-later, copyright, protected brand assets, trademarks, and responsibility terms.
@@ -151,7 +151,7 @@ Installed Helper components:
 - /Library/LaunchDaemons/com.shixinqvq.shixinlab.macstresspower.helper.plist
 - /var/run/com.shixinqvq.shixinlab.macstresspower.helper.sock
 
-After installation, Advanced Permissions should report Helper version `0.3.0-helper`. Use the update action on the same page if the versions differ.
+After installation, Advanced Permissions should report Helper version `0.3.4-helper`. Use the update action on the same page if the versions differ.
 
 ## Essential Workflows
 
@@ -195,6 +195,12 @@ For support, generate a diagnostic report under Settings & About and include the
 
 - Website: https://shixinqvq.com/lab/maccore/
 - Source and issues: https://github.com/ShiXinQvQ/SHIXIN-LAB-XinMai-MacCore-Monitor
+
+## 0.3.4 硬盘温度与 Helper / Disk temperature and Helper
+
+硬盘温度改由 App 以普通权限读取，Helper 不再运行 smartctl，也不再启动除 powermetrics 以外的任何程序。从旧版本升级后，请在「设置关于 → 高级权限」更新一次 Helper（需要输入一次管理员密码）。更新前 App 仍可正常使用，硬盘温度也会照常显示。
+
+The app now reads the disk temperature with its own privileges. The Helper no longer runs smartctl or any program other than powermetrics. After upgrading, update the Helper once under Settings & About → Advanced Permissions (one administrator approval). Until then the app keeps working and still shows the disk temperature.
 
 ## 0.3.3 功耗口径 / Power measurement scope
 

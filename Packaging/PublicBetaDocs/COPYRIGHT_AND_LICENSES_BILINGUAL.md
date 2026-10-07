@@ -1,6 +1,6 @@
 # SHIXIN LAB · 「芯脉」
 ## 版权、开源许可与第三方声明 | Copyright, Open Source License & Third-Party Notices
-版本 0.3.3-beta · 构建 303 · 2026
+版本 0.3.4-beta · 构建 304 · 2026
 
 ---
 
@@ -8,7 +8,7 @@
 
 ## 产品身份与版权
 
-Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.3-beta，构建号 303。
+Copyright © 2026 SHIXIN LAB / Shixin。SHIXIN LAB · 「芯脉」 MacCore Monitor 由 Shixin 主导设计、开发与维护。本发行包对应版本 0.3.4-beta，构建号 304。
 
 SHIXIN LAB 自有程序源码的著作权仍归 SHIXIN LAB / Shixin 所有，并按 GPL-3.0-or-later 授权。产品名称、品牌视觉、最终 v3 图标、Logo、截图、宣传视觉、中英文文档及其他 SHIXIN LAB 原创品牌资产不因源码开源而失去著作权保护。
 
@@ -66,7 +66,7 @@ App 不会在后台上传硬件历史或个人内容；用户主动开始网速�
 
 ## 发行完整性与追溯
 
-请只从 SHIXIN LAB 官网或项目 GitHub Releases 获取安装包，并使用与目标 DMG 同时发布的 SHA-256 文件验证。本发行对应 Helper `0.3.0-helper`；DMG 内的 Release Manifest 记录产品版本、构建号、Helper 版本、源码提交、架构与生成时间。不同时间戳的发行文件不得混用校验值。
+请只从 SHIXIN LAB 官网或项目 GitHub Releases 获取安装包，并使用与目标 DMG 同时发布的 SHA-256 文件验证。本发行对应 Helper `0.3.4-helper`；DMG 内的 Release Manifest 记录产品版本、构建号、Helper 版本、源码提交、架构与生成时间。不同时间戳的发行文件不得混用校验值。
 
 <!-- PAGEBREAK -->
 
@@ -74,7 +74,7 @@ App 不会在后台上传硬件历史或个人内容；用户主动开始网速�
 
 ## Product Identity and Copyright
 
-Copyright © 2026 SHIXIN LAB / Shixin. SHIXIN LAB · 「芯脉」 MacCore Monitor is designed, developed, and maintained by Shixin. This distribution contains version 0.3.3-beta, build 303.
+Copyright © 2026 SHIXIN LAB / Shixin. SHIXIN LAB · 「芯脉」 MacCore Monitor is designed, developed, and maintained by Shixin. This distribution contains version 0.3.4-beta, build 304.
 
 Copyright in SHIXIN LAB-owned program source remains with SHIXIN LAB / Shixin and is licensed under GPL-3.0-or-later. The product name, brand visuals, final v3 icon, logos, screenshots, promotional artwork, bilingual documentation, and other original SHIXIN LAB brand assets remain protected by copyright even though the source code is open source.
 
@@ -134,4 +134,4 @@ The app does not upload hardware history or personal content in the background. 
 
 ## Release Integrity and Traceability
 
-Obtain packages only from the SHIXIN LAB website or project GitHub Releases. Verify the target DMG with the SHA-256 file published beside that exact artifact. This release expects Helper `0.3.0-helper`; the Release Manifest inside the DMG records the product version, build number, Helper version, source commit, architecture, and generation time. Never reuse a checksum from a differently timestamped package.
+Obtain packages only from the SHIXIN LAB website or project GitHub Releases. Verify the target DMG with the SHA-256 file published beside that exact artifact. This release expects Helper `0.3.4-helper`; the Release Manifest inside the DMG records the product version, build number, Helper version, source commit, architecture, and generation time. Never reuse a checksum from a differently timestamped package.
