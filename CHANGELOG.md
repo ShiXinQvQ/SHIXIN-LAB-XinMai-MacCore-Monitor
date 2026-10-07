@@ -5,7 +5,7 @@ semantic-versioning compatibility during Beta.
 
 Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容。
 
-## 0.3.4-beta (Build 304) — Unreleased / 未发布
+## 0.3.4-beta (Build 304) — 2026-10-07
 
 - Helper security: the privileged Helper no longer reads the disk temperature and never launches `smartctl`. Earlier Helpers could run a `smartctl` found in a user-writable Homebrew folder with root privileges. The app now reads the disk temperature itself, without elevated privileges, and refreshes it in the background so sampling never waits on a slow disk query.
 - Helper stability: the powermetrics stream now owns its pipe and child process directly, so each descriptor is opened, closed and reaped exactly once. Power-source state is read through IOKit instead of `pmset`, leaving powermetrics as the Helper's only child process. If descriptor errors still occur three times in a row, the Helper exits and launchd starts a fresh instance; each failure is logged to the Helper error log.
