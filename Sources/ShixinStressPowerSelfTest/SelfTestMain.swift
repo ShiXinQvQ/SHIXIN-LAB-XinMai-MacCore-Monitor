@@ -36,9 +36,9 @@ struct ShixinStressPowerSelfTest {
               configuration.thermalSeriousGraceSeconds == 120 else {
             fatalError("default stress configuration is out of sync")
         }
-        guard ReleaseConstants.appVersion == "0.3.3-beta",
-              ReleaseConstants.appBuild == "303",
-              HelperConstants.helperVersion == "0.3.0-helper" else {
+        guard ReleaseConstants.appVersion == "0.3.4-beta",
+              ReleaseConstants.appBuild == "304",
+              HelperConstants.helperVersion == "0.3.4-helper" else {
             fatalError("release version constants are out of sync")
         }
 

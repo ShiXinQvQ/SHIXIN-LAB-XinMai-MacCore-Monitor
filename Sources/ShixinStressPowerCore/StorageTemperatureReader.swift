@@ -25,7 +25,37 @@ public struct StorageTemperatureSnapshot: Codable, Equatable {
 public enum StorageTemperatureReader {
     private static let cacheLock = NSLock()
     private static var cached: (date: Date, snapshot: StorageTemperatureSnapshot)?
+    private static var refreshInFlight = false
     private static let cacheLifetime: TimeInterval = 5
+    private static let refreshQueue = DispatchQueue(
+        label: "com.shixinqvq.shixinlab.macstresspower.storage-temperature",
+        qos: .utility
+    )
+
+    /// Returns the latest reading without waiting for diskutil or smartctl.
+    /// A stale or missing cache is refreshed in the background, so a sampling
+    /// loop never stalls on a slow disk query.
+    public static func cachedReading() -> StorageTemperatureSnapshot {
+        cacheLock.lock()
+        let current = cached
+        let isFresh = current.map { Date().timeIntervalSince($0.date) < cacheLifetime } ?? false
+        let shouldRefresh = !isFresh && !refreshInFlight
+        if shouldRefresh {
+            refreshInFlight = true
+        }
+        cacheLock.unlock()
+
+        if shouldRefresh {
+            refreshQueue.async {
+                let snapshot = readUncached()
+                cacheLock.lock()
+                cached = (Date(), snapshot)
+                refreshInFlight = false
+                cacheLock.unlock()
+            }
+        }
+        return current?.snapshot ?? .unavailable
+    }
 
     public static func read() -> StorageTemperatureSnapshot {
         cacheLock.lock()
@@ -135,20 +165,30 @@ public enum StorageTemperatureReader {
     }
 
     private static func locateSmartctl() -> String? {
+        smartctlCandidates(effectiveUserID: geteuid())
+            .first { FileManager.default.isExecutableFile(atPath: $0) }
+    }
+
+    /// smartctl is never launched with root privileges. Homebrew installs it in
+    /// directories the logged-in user can rewrite, so a root process running it
+    /// would hand that user a way to run code as root. The app reads the disk
+    /// temperature with its own privileges instead; a root caller falls back to
+    /// the system's diskutil.
+    static func smartctlCandidates(effectiveUserID: uid_t) -> [String] {
+        guard effectiveUserID != 0 else { return [] }
+
         let bundleCandidate = Bundle.main.resourceURL?
             .appendingPathComponent("Tools", isDirectory: true)
             .appendingPathComponent("smartctl")
             .path
 
-        let candidates = [
+        return [
             bundleCandidate,
             "/usr/local/sbin/smartctl",
             "/opt/homebrew/bin/smartctl",
             "/usr/local/bin/smartctl",
             "/opt/homebrew/sbin/smartctl"
         ].compactMap { $0 }
-
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
     private static func run(_ executable: String, arguments: [String]) -> Data? {

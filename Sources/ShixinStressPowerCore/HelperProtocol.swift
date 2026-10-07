@@ -5,8 +5,8 @@ import Darwin
 import Foundation
 
 public enum ReleaseConstants {
-    public static let appVersion = "0.3.3-beta"
-    public static let appBuild = "303"
+    public static let appVersion = "0.3.4-beta"
+    public static let appBuild = "304"
 }
 
 public enum HelperConstants {
@@ -15,7 +15,7 @@ public enum HelperConstants {
     public static let launchDaemonPath = "/Library/LaunchDaemons/\(label).plist"
     public static let socketPath = "/var/run/\(label).sock"
     public static let bundledHelperRelativePath = "PrivilegedHelperTools/\(label)"
-    public static let helperVersion = "0.3.0-helper"
+    public static let helperVersion = "0.3.4-helper"
 
     public static var launchDaemonPlist: String {
         """
@@ -148,7 +148,7 @@ public enum HelperSocketClient {
         }
         sample.fanRPMs = temperatures.fanRPMs
         sample.ssdTemperatureC = temperatures.ssdTemperatureC
-        let storageTemperature = StorageTemperatureReader.read()
+        let storageTemperature = StorageTemperatureReader.cachedReading()
         sample.diskTemperatureC = storageTemperature.diskTemperatureC
         sample.diskTemperatureSourceDetail = storageTemperature.sourceDetail
         sample.wifiTemperatureC = temperatures.wifiTemperatureC

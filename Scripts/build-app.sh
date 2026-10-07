@@ -25,7 +25,9 @@ else
   SOURCE_COMMIT="unavailable (source archive)"
   SOURCE_TREE_STATE="unavailable"
 fi
-APP_INSTALL_DIR="${SHIXIN_APP_INSTALL_DIR:-$HOME/Applications}"
+# Development builds stay inside the project so they never replace the installed
+# app. Set SHIXIN_APP_INSTALL_DIR explicitly to install elsewhere.
+APP_INSTALL_DIR="${SHIXIN_APP_INSTALL_DIR:-$ROOT_DIR/Dist/Development}"
 APP_DIR="$APP_INSTALL_DIR/${APP_NAME}.app"
 STAGING_ROOT="$(mktemp -d /private/tmp/shixin-maccore-build.XXXXXX)"
 STAGED_APP_DIR="$STAGING_ROOT/${APP_NAME}.app"
