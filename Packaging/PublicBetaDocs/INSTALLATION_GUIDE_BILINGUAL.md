@@ -37,7 +37,7 @@ SHA-256 校验文件与 DMG 一同发布，不在 DMG 内。请始终把两者�
 1. 双击打开 DMG。
 2. 将“SHIXIN LAB · 「芯脉」.app”拖到 DMG 内的“Applications”快捷方式。
 3. 等待复制完成，再从“应用程序”文件夹打开 App；不要长期直接从 DMG 内运行。
-4. 如果 macOS 阻止首次打开，请在 Finder 中按住 Control 点按 App，选择“打开”；也可以前往“系统设置 > 隐私与安全性”，确认打开该 App。
+4. 如果 macOS 提示无法验证并阻止首次打开，先选择“完成”，再前往“系统设置 > 隐私与安全性”，在“安全性”一栏找到「芯脉」的提示，选择“仍要打开”并确认。macOS 15 起，按住 Control 点按“打开”已不能绕过这一提示。
 
 如需在终端核对下载，先把 DMG 与同名 `.sha256` 文件放在同一目录，再运行 `shasum -a 256 -c checksum-file.sha256`（将文件名替换为下载页面提供的实际名称）。结果显示 `OK` 才表示下载内容与发布值一致。
 
@@ -135,7 +135,7 @@ The SHA-256 checksum file is published beside the DMG, not inside it. Keep and v
 1. Double-click the DMG to open it.
 2. Drag “SHIXIN LAB · 「芯脉」.app” onto the “Applications” shortcut.
 3. Wait for copying to finish, then open the app from Applications. Do not use the copy inside the DMG as a permanent installation.
-4. If macOS blocks the first launch, Control-click the app in Finder and choose “Open”, or confirm it under “System Settings > Privacy & Security”.
+4. If macOS cannot verify the app and blocks the first launch, choose “Done”, then open “System Settings > Privacy & Security”, find the notice for XinMai under Security, choose “Open Anyway” and confirm. Since macOS 15, Control-clicking “Open” no longer bypasses this prompt.
 
 To verify the download in Terminal, place the DMG and its matching `.sha256` file in the same folder, then run `shasum -a 256 -c checksum-file.sha256`. Continue only when the result reports `OK`.
 

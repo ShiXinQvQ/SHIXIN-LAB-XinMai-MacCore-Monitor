@@ -12,12 +12,14 @@ Beta 阶段按发行版本记录变化，不承诺严格的语义化版本兼容
 - Battery state: a discharging battery is no longer reported as charging.
 - Development builds from `Scripts/build-app.sh` go to `Dist/Development/` by default instead of replacing the installed app.
 - Users of 0.3.3 and earlier keep working with an older Helper; the app reads the disk temperature locally and asks for a one-time Helper update.
+- The bundled installation guide now leads with System Settings → Privacy & Security → Open Anyway; Control-click no longer bypasses Gatekeeper on macOS 15 and later.
 
 - Helper 安全：特权 Helper 不再读取硬盘温度，也不再启动 `smartctl`。此前的 Helper 可能以 root 身份运行位于用户可写的 Homebrew 目录中的 `smartctl`。现在由 App 以普通权限读取硬盘温度，并在后台刷新，采样不会因磁盘查询变慢而等待。
 - Helper 稳定性：powermetrics 采样流改为直接管理自己的管道与子进程，每个描述符只打开、关闭、回收一次。电源状态改用 IOKit 读取，不再启动 `pmset`，Helper 只剩 powermetrics 一个子进程。若仍连续三次出现描述符错误，Helper 会退出并由 launchd 重新启动，每次失败都会写入 Helper 错误日志。
 - 电池状态：放电中不再被误报为“充电中”。
 - `Scripts/build-app.sh` 的开发构建默认输出到 `Dist/Development/`，不再覆盖已安装的 App。
 - 0.3.3 及更早版本的用户在旧 Helper 下仍可正常使用；App 会在本地读取硬盘温度，并提示更新一次 Helper。
+- 随包安装说明改为首选“系统设置 → 隐私与安全性 → 仍要打开”；macOS 15 起，按住 Control 点按“打开”已不能绕过安全提示。
 
 ## 0.3.3-beta (Build 303) — 2026-09-29
 
